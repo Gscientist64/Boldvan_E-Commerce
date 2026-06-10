@@ -1,0 +1,13 @@
+Login as admin:
+
+Email: ekpeusa@gmail.com
+
+Password: Password1@
+
+TO start the backend server - cd backend - npm run dev
+
+Paystack demo account card:
+card Number -  4084 0840 8408 4081
+Expiry Date - 12/30
+CVV - 456
+OTP - 9090

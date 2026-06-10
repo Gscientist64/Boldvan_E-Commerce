@@ -1,0 +1,519 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* BOLDVAN Electric Indigo Primary */
+    --primary: 239 84% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 239 20% 96%;
+    --secondary-foreground: 239 47% 12%;
+
+    --muted: 239 20% 96%;
+    --muted-foreground: 239 10% 46%;
+
+    --accent: 239 20% 96%;
+    --accent-foreground: 239 47% 12%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 239 20% 90%;
+    --input: 239 20% 90%;
+    --ring: 239 84% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 239 50% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 239 50% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 239 50% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    /* BOLDVAN Electric Indigo Primary - Dark */
+    --primary: 239 84% 65%;
+    --primary-foreground: 239 50% 10%;
+
+    --secondary: 239 30% 16%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 239 30% 16%;
+    --muted-foreground: 239 15% 60%;
+
+    --accent: 239 30% 16%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 239 30% 20%;
+    --input: 239 30% 20%;
+    --ring: 239 84% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Root styles - minimal interference with modals */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  isolation: isolate;
+}
+
+/* ===== BOLDVAN BRAND STYLES ===== */
+
+/* Logo animations */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em rgba(79, 70, 229, 0.6));
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em rgba(79, 70, 229, 0.6));
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* ===== BOLDVAN Card Styles ===== */
+.card {
+  padding: 2em;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(79, 70, 229, 0.1);
+  background-color: rgba(79, 70, 229, 0.02);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.12);
+  transform: translateY(-2px);
+}
+
+.read-the-docs {
+  color: #6366b2;
+}
+
+/* ===== BOLDVAN Gradient Text ===== */
+.boldvan-gradient-text {
+  background: linear-gradient(135deg, #4F46E5 0%, #0D9488 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.boldvan-gradient-text-light {
+  background: linear-gradient(135deg, #818CF8 0%, #2DD4BF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== BOLDVAN Glow Effects ===== */
+.boldvan-glow {
+  box-shadow: 0 0 30px rgba(79, 70, 229, 0.15), 0 0 60px rgba(79, 70, 229, 0.05);
+}
+
+.boldvan-glow-teal {
+  box-shadow: 0 0 30px rgba(13, 148, 136, 0.15), 0 0 60px rgba(13, 148, 136, 0.05);
+}
+
+/* ===== PAYSTACK MODAL FIXES ===== */
+
+/* Target Paystack's iframe specifically */
+iframe[src*="paystack.com"],
+iframe[title*="Paystack"],
+iframe[id*="paystack"] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999999 !important;
+  max-width: min(440px, 95vw) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 500px !important;
+  max-height: 90vh !important;
+  border: none !important;
+  border-radius: 24px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  animation: modalFadeIn 0.3s ease-out !important;
+}
+
+/* Paystack overlay - the dark background */
+body > div[style*="z-index: 999999"][style*="background"] {
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  animation: overlayFadeIn 0.2s ease-out !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Flutterwave modal fixes */
+iframe[src*="flutterwave"] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999999 !important;
+  max-width: min(500px, 95vw) !important;
+  max-height: 90vh !important;
+  border-radius: 24px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Mobile optimization */
+@media (max-width: 640px) {
+  iframe[src*="paystack.com"],
+  iframe[src*="flutterwave"] {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+  
+  body > div[style*="z-index: 999999"][style*="background"] {
+    background: rgba(15, 23, 42, 0.85) !important;
+  }
+}
+
+/* ===== ANIMATION KEYFRAMES ===== */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== ANIMATION UTILITY CLASSES ===== */
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.6s ease-out forwards;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 4s ease infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+/* ===== SCROLL BAR STYLES (BOLDVAN THEME) ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EEF2FF;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6366F1, #4F46E5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #4F46E5, #4338CA);
+}
+
+/* ===== MODAL & OVERLAY FIXES ===== */
+
+/* Hide scrollbar when modal is open */
+body.payment-modal-open {
+  overflow: hidden;
+}
+
+/* Ensure proper z-index layering */
+.payment-modal-overlay {
+  z-index: 999998 !important;
+}
+
+.payment-modal-content {
+  z-index: 999999 !important;
+}
+
+/* Fix for any potential z-index conflicts */
+.fixed {
+  z-index: 50;
+}
+
+/* Ensure dialogs are above everything */
+[role="dialog"] {
+  z-index: 1000 !important;
+}
+
+/* Fix for shadcn/ui dialog z-index */
+[data-radix-portal] {
+  z-index: 2147483647 !important;
+}
+
+/* ===== INTERACTIVE ELEMENTS ===== */
+
+/* Ensure payment buttons are clickable */
+.payment-button {
+  cursor: pointer !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Disable pointer events on loading state */
+.payment-button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Hover effects for interactive elements */
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+.hover\:shadow-boldvan:hover {
+  box-shadow: 0 8px 30px rgba(79, 70, 229, 0.25);
+}
+
+.hover\:shadow-lg:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+}
+
+/* Active state for buttons */
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+/* ===== FOCUS STYLES (BOLDVAN) ===== */
+*:focus-visible {
+  outline: 2px solid #6366F1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== GLASS EFFECT ===== */
+.glass-boldvan {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(79, 70, 229, 0.1);
+}
+
+.glass-boldvan-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(79, 70, 229, 0.15);
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ===== SELECTION STYLES ===== */
+::selection {
+  background-color: rgba(79, 70, 229, 0.2);
+  color: #1E1B4B;
+}
+
+::-moz-selection {
+  background-color: rgba(79, 70, 229, 0.2);
+  color: #1E1B4B;
+}

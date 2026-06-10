@@ -1,0 +1,573 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// First, add the Permission enum
+enum Permission {
+  // User permissions
+  VIEW_USERS
+  CREATE_USER
+  EDIT_USER
+  DELETE_USER
+  MANAGE_USER_ROLES
+  
+  // Product permissions
+  VIEW_PRODUCTS
+  CREATE_PRODUCT
+  EDIT_PRODUCT
+  DELETE_PRODUCT
+  MANAGE_PRODUCT_CATEGORIES
+  
+  // Order permissions
+  VIEW_ORDERS
+  EDIT_ORDER_STATUS
+  CANCEL_ORDER
+  REFUND_ORDER
+  VIEW_ORDER_REPORTS
+  
+  // Delivery permissions
+  VIEW_DELIVERY_LOCATIONS
+  MANAGE_DELIVERY_LOCATIONS
+  VIEW_DELIVERY_METHODS
+  MANAGE_DELIVERY_METHODS
+  CONFIGURE_DELIVERY_PRICING
+  
+  // Service permissions
+  VIEW_SERVICES
+  MANAGE_SERVICES
+  VIEW_BOOKINGS
+  MANAGE_BOOKINGS
+  
+  // Review permissions
+  VIEW_REVIEWS
+  MODERATE_REVIEWS
+  DELETE_REVIEWS
+  
+  // Settings permissions
+  VIEW_SETTINGS
+  EDIT_GENERAL_SETTINGS
+  EDIT_PAYMENT_SETTINGS
+  EDIT_EMAIL_SETTINGS
+  VIEW_ACTIVITY_LOGS
+  
+  // Analytics permissions
+  VIEW_DASHBOARD
+  VIEW_SALES_REPORTS
+  VIEW_USER_REPORTS
+  EXPORT_REPORTS
+  
+  // Admin permissions
+  MANAGE_ADMINS
+  MANAGE_ROLES
+  VIEW_AUDIT_LOGS
+}
+
+// Role model
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique // e.g., "Super Admin", "Admin", "Manager"
+  description String?
+  permissions Permission[] // Array of permissions
+  isSystem    Boolean      @default(false) // System roles cannot be deleted
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Relations
+  users       UserRoleAssignment[]
+  
+  @@map("roles")
+}
+
+// UserRoleAssignment model
+model UserRoleAssignment {
+  id         String   @id @default(cuid())
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+  assignedBy String?  // Admin who assigned this role
+  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, roleId])
+  @@map("user_role_assignments")
+}
+
+// Admin Action Log
+model AdminLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  adminEmail  String
+  action      String   // e.g., "CREATE", "UPDATE", "DELETE", "LOGIN"
+  entityType  String   // e.g., "USER", "PRODUCT", "ORDER", "ROLE"
+  entityId    String?
+  entityName  String?  // For easier searching
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  status      String   @default("SUCCESS")
+  errorMessage String?
+  createdAt   DateTime @default(now())
+  
+  admin       User     @relation(fields: [adminId], references: [id])
+  
+  @@index([adminId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("admin_logs")
+}
+
+// User model - updated with cart relation
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String
+  firstName          String?
+  lastName           String?
+  phone              String?
+  address            String?
+  role               UserRole  @default(USER)
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  notificationPrefs  Json?     // { orderUpdates: bool, promotions: bool, newsletter: bool }
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  // New relationships
+  roleAssignments UserRoleAssignment[]
+  adminLogs       AdminLog[] // For logs where this user is the admin
+  cart            Cart?      // One-to-one relation with Cart
+  
+  // Existing relations
+  bookings  Booking[]
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  slug        String    @unique
+  image       String?
+  createdAt   DateTime  @default(now())
+  products    Product[]
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  name           String
+  description    String?
+  price          Float
+  image          String?
+  images         String[]
+  sku            String      @unique
+  stock          Int         @default(0)
+  rating         Float       @default(0)
+  categoryId     String
+  features       Json?
+  specifications Json?
+  isFeatured     Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
+  category       Category    @relation(fields: [categoryId], references: [id])
+  reviews        Review[]
+  cartItems      CartItem[]  // Relation to CartItem
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  userId          String
+  status          OrderStatus @default(PENDING)
+  totalAmount     Float
+  subtotal        Float
+  shippingFee     Float    @default(0)
+  paymentMethod   String
+  paymentStatus   String   @default("pending")
+  paymentReference String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  estimatedDelivery DateTime?
+  trackingNumber  String?
+  
+  // Delivery fields (MOVE THESE INSIDE THE MODEL)
+  deliveryLocationId    String?
+  deliveryMethodId      String?
+  deliveryFee           Float?        @default(0)
+  deliveryStatus        DeliveryStatus? @default(PENDING)
+  estimatedDeliveryDate DateTime?
+  actualDeliveryDate    DateTime?
+  deliveryAddress       String?
+  deliveryPhone         String?
+  deliveryNotes         String?
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  shipping        ShippingInfo?
+  deliveryLocation      DeliveryLocation? @relation(fields: [deliveryLocationId], references: [id])
+  deliveryMethod        DeliveryMethod? @relation(fields: [deliveryMethodId], references: [id])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  name      String   // Store product name at time of order
+  
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model ShippingInfo {
+  id          String @id @default(cuid())
+  orderId     String @unique
+  firstName   String
+  lastName    String
+  email       String
+  phone       String
+  address     String
+  city        String
+  state       String
+  zipCode     String?
+  method      String
+  instructions String?
+  
+  order       Order  @relation(fields: [orderId], references: [id])
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Float?
+  image       String?
+  type        ServiceType
+  duration    Int?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  bookings    Booking[]
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  userId    String
+  serviceId String
+  date      DateTime
+  timeSlot  String
+  address   String
+  phone     String
+  status    BookingStatus @default(PENDING)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  service   Service       @relation(fields: [serviceId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// Delivery Locations Model
+model DeliveryLocation {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String?
+  baseFee       Float    @default(0)
+  estimatedDays String   @default("1-3")
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  orders        Order[]
+  methods       DeliveryLocationMethod[]
+  zoneId        String?
+  zone          DeliveryZone? @relation(fields: [zoneId], references: [id])
+  cartItems     CartItem[]  // Relation to CartItem
+  
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+// Delivery Methods Model
+model DeliveryMethod {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String?
+  baseFee       Float    @default(0)
+  estimatedDays String   @default("0")
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  orders        Order[]
+  locations     DeliveryLocationMethod[]
+  cartItems     CartItem[]  // Relation to CartItem
+  
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+// Junction table for location-method specific pricing
+model DeliveryLocationMethod {
+  id            String   @id @default(cuid())
+  locationId    String
+  methodId      String
+  customFee     Float?
+  customDays    String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  location      DeliveryLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  method        DeliveryMethod   @relation(fields: [methodId], references: [id], onDelete: Cascade)
+  
+  @@unique([locationId, methodId])
+  @@index([isActive])
+}
+
+// Delivery Zones Model
+model DeliveryZone {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  baseFee       Float    @default(0)
+  estimatedDays String   @default("1-3")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  locations     DeliveryLocation[]
+}
+
+// Shop Settings Model - Consider deprecating in favor of MarketplaceSettings
+model ShopSettings {
+  id                     String   @id @default(cuid())
+  freeShippingThreshold  Float    @default(50000)
+  returnPolicy           String?  @default("30-day return policy for defective items")
+  warrantyInfo           String?  @default("1-year warranty on all products")
+  aboutText              String?
+  contactEmail           String?
+  contactPhone           String?
+  whatsappNumber         String?
+  updatedAt              DateTime @updatedAt
+}
+
+// Seller Information Model
+model SellerInfo {
+  id            String   @id @default(cuid())
+  name          String   @default("OneClick Resources")
+  description   String?
+  email         String?
+  phone         String?  @default("08178363424")
+  whatsapp      String?  @default("08178363424")
+  address       String?  @default("Lagos, Nigeria")
+  logo          String?
+  rating        Float    @default(4.9)
+  totalSales    Int      @default(1500)
+  successRate   Int      @default(100)
+  memberSince   String?  @default("2019")
+  responseTime  String?  @default("< 1 hour")
+  badges        String[]
+  updatedAt     DateTime @updatedAt
+}
+
+// ============ NEW MARKETPLACE SETTINGS MODELS ============
+
+// Comprehensive Marketplace Settings
+model MarketplaceSettings {
+  id                       String   @id @default(cuid())
+  
+  // General Settings
+  siteName                 String   @default("SolarMart")
+  siteDescription          String?  @default("Your trusted solar energy marketplace")
+  siteLogo                 String?
+  favicon                  String?
+  contactEmail             String?
+  contactPhone             String?
+  supportEmail             String?
+  supportPhone             String?
+  address                  String?
+  
+  // Currency Settings
+  currency                 String   @default("NGN")
+  currencySymbol           String   @default("₦")
+  currencyPosition         String   @default("before") // before, after
+  
+  // Tax Settings
+  taxEnabled               Boolean  @default(true)
+  taxRate                  Float    @default(7.5) // VAT in Nigeria
+  taxIncluded              Boolean  @default(false) // Is tax included in price?
+  
+  // Shipping Settings
+  freeShippingThreshold    Float    @default(50000)
+  defaultShippingFee       Float    @default(2500)
+  
+  // Order Settings
+  autoConfirmOrders        Boolean  @default(false)
+  orderPrefix              String   @default("ORD")
+  invoicePrefix            String   @default("INV")
+  
+  // Payment Settings
+  paystackPublicKey        String?
+  paystackSecretKey        String?
+  flutterwavePublicKey     String?
+  flutterwaveSecretKey     String?
+  bankTransferEnabled      Boolean  @default(true)
+  bankAccountName          String?
+  bankAccountNumber        String?
+  bankName                 String?
+  
+  // Email Settings
+  smtpHost                 String?
+  smtpPort                 Int?
+  smtpUser                 String?
+  smtpPassword             String?
+  smtpFromEmail            String?
+  smtpFromName             String?
+  
+  // SEO Settings
+  metaTitle                String?  @default("SolarMart - Nigeria's Premier Solar Marketplace")
+  metaDescription          String?  @default("Shop premium solar panels, inverters, batteries and accessories in Nigeria")
+  metaKeywords             String?
+  googleAnalyticsId        String?
+  
+  // Maintenance Mode
+  maintenanceMode          Boolean  @default(false)
+  maintenanceMessage       String?  @default("We are currently undergoing maintenance. Please check back soon.")
+  
+  // Security
+  maxLoginAttempts         Int      @default(5)
+  lockoutTime              Int      @default(15) // minutes
+  twoFactorAuth            Boolean  @default(false)
+  
+  // Timestamps
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  
+  @@map("marketplace_settings")
+}
+
+// Commission Model for seller marketplace
+model Commission {
+  id              String   @id @default(cuid())
+  name            String   // e.g., "Standard", "Premium", "Electronics"
+  percentage      Float    // e.g., 10.5
+  fixedFee        Float    @default(0) // Fixed fee per sale
+  minFee          Float?   // Minimum commission
+  maxFee          Float?   // Maximum commission
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("commissions")
+}
+
+// Legacy categories table - consider migrating to the Category model above
+model categories {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  description String?
+  slug        String    @unique @db.VarChar(255)
+  image       String?   @db.VarChar(500)
+  createdAt   DateTime? @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([name], map: "idx_categories_name")
+  @@index([slug], map: "idx_categories_slug")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ServiceType {
+  INSTALLATION
+  MAINTENANCE
+  REPAIR
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+// Cart Models
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id               String   @id @default(cuid())
+  cartId           String
+  productId        String
+  quantity         Int      @default(1)
+  deliveryLocationId String?
+  deliveryMethodId   String?
+  deliveryFee      Float?   @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  cart             Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product          Product  @relation(fields: [productId], references: [id])
+  deliveryLocation DeliveryLocation? @relation(fields: [deliveryLocationId], references: [id])
+  deliveryMethod   DeliveryMethod? @relation(fields: [deliveryMethodId], references: [id])
+
+  @@unique([cartId, productId])
+}
