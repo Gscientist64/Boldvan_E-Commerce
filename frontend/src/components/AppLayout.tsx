@@ -149,8 +149,8 @@ const AppLayout: React.FC = () => {
             className="hidden lg:block bg-gradient-to-r from-navy-950 to-navy-900 text-white text-sm py-2 w-full"
           >
             <div className="w-full px-4 md:px-6 lg:px-8">
-              <div className="max-w-7xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-6">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+                <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-teal-400" />
                     <span>08178363424</span>
@@ -164,7 +164,7 @@ const AppLayout: React.FC = () => {
                     <span>{storeConfig.address}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap justify-center md:justify-end items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-teal-400" />
                     <span>Mon-Sat: 8am - 8pm</span>
@@ -561,7 +561,7 @@ const AppLayout: React.FC = () => {
                     Subscribe to our newsletter for exclusive offers and clean energy tips
                   </p>
                 </div>
-                <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="email"
                     placeholder="Enter your email"

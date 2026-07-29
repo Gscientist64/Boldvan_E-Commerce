@@ -744,9 +744,9 @@ const ShopPage: React.FC = () => {
 
       {/* Filters Section - Full Width with Sticky Header */}
       <div className="sticky top-0 z-20 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
-        <div className="w-full px-4 md:px-6 lg:px-8 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-4 items-center">
+          <div className="w-full px-4 md:px-6 lg:px-8 py-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
               {/* Search */}
               <div className="flex-1 w-full">
                 <div className="relative group">
@@ -774,7 +774,7 @@ const ShopPage: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className={`rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-md text-teal-600' : 'text-slate-600 hover:bg-white/50'}`}
+                  className={`w-full sm:w-auto rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-md text-teal-600' : 'text-slate-600 hover:bg-white/50'}`}
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
@@ -782,18 +782,18 @@ const ShopPage: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={`rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-md text-teal-600' : 'text-slate-600 hover:bg-white/50'}`}
+                  className={`w-full sm:w-auto rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-md text-teal-600' : 'text-slate-600 hover:bg-white/50'}`}
                 >
                   <List className="h-4 w-4" />
                 </Button>
               </div>
 
               {/* Filter Toggle */}
-              <Button
-                variant="outline"
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`relative rounded-xl border-2 transition-all hover:scale-105 ${isFilterOpen ? 'border-teal-500 bg-teal-50' : 'border-slate-200'}`}
-              >
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  className={`w-full sm:w-auto relative rounded-xl border-2 transition-all hover:scale-105 ${isFilterOpen ? 'border-teal-500 bg-teal-50' : 'border-slate-200'}`}
+                >
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
                 {(selectedCategory !== 'all' || selectedFilters.inStock || selectedFilters.onSale || selectedFilters.featured) && (
@@ -807,7 +807,7 @@ const ShopPage: React.FC = () => {
               </Button>
 
               {/* Category Filter */}
-              <div className="w-full lg:w-64">
+              <div className="w-full sm:w-auto lg:w-64">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="py-6 rounded-xl border-2 border-slate-200 focus:border-teal-500 transition-all">
                     <div className="flex items-center">
@@ -1010,8 +1010,8 @@ const ShopPage: React.FC = () => {
       <section className="py-12 w-full">
         <div className="w-full px-4 md:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-              <div>
+            <div className="flex flex-col gap-4 md:flex-row md:justify-between items-start md:items-center mb-8">
+              <div className="w-full md:w-auto">
                 <h2 className="text-3xl md:text-4xl font-bold mb-2">
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-teal-400">
                     {selectedCategory !== 'all' 
@@ -1026,7 +1026,7 @@ const ShopPage: React.FC = () => {
               </div>
               
               {/* Active Filters Tags */}
-              <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
+              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 w-full md:w-auto">
                 {selectedFilters.inStock && (
                   <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm flex items-center">
                     <CheckCircle className="h-3 w-3 mr-1" />
@@ -1097,7 +1097,7 @@ const ShopPage: React.FC = () => {
                 initial="hidden"
                 animate="visible"
                 className={viewMode === 'grid' 
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                   : "space-y-4"
                 }
               >

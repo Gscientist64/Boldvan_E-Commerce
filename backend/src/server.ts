@@ -9,6 +9,7 @@ import { authenticate } from './middleware/auth.middleware'; // ✅ ADD THIS
 
 // Routes
 import authRoutes from './routes/auth.routes';
+import otpRoutes from './routes/otp.routes';
 import productRoutes from './routes/products.routes';
 import orderRoutes from './routes/orders.routes';
 import serviceRoutes from './routes/services.routes';
@@ -37,8 +38,11 @@ const PORT = process.env.PORT || 5000;
 // If running behind a proxy (like Render), trust first proxy
 app.set('trust proxy', 1);
 
-// Security middlewares
-app.use(helmet());
+// Security middlewares (disable COOP to allow Google OAuth popup postMessage)
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'unsafe-none' },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 // Basic rate limiting to mitigate brute-force and DDOS
 const limiter = rateLimit({
@@ -69,13 +73,14 @@ app.use(cors({
       callback(null, true);
     } else {
       // Also check explicit origins from env
-      const explicitOrigins = [
-        process.env.FRONTEND_URL
-      ].filter(Boolean);
-      
+      const explicitOriginsEnv = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '';
+      const explicitOrigins = explicitOriginsEnv.split(',').map(s => s.trim()).filter(Boolean);
+
       if (explicitOrigins.indexOf(origin) !== -1) {
+        console.log('✅ CORS allowed (explicit):', origin);
         callback(null, true);
       } else {
+        console.warn('⛔ CORS blocked for origin:', origin);
         callback(new Error('Not allowed by CORS'));
       }
     }
@@ -92,6 +97,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Public Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/otp', otpRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/services', serviceRoutes);

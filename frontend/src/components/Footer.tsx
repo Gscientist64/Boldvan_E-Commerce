@@ -2,7 +2,7 @@ import React from 'react';
 const Footer: React.FC = () => {
   return <footer className="bg-navy text-white mt-16">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
             <h3 className="text-xl font-bold mb-4 text-teal-500">BOLDVAN</h3>
             <p className="text-sm text-white">Your trusted destination for premium products across all categories.</p>
@@ -22,13 +22,13 @@ const Footer: React.FC = () => {
 
           <div>
             <h4 className="font-bold mb-4 text-white">Shop</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li><a href="#" className="hover:text-teal-400 transition-colors text-white">Electronics</a></li>
-              <li><a href="#" className="hover:text-teal-400 transition-colors text-white">Beauty, Fashion & Sports</a></li>
-              <li><a href="#" className="hover:text-teal-400 transition-colors text-white">Home & Living</a></li>
-              <li><a href="#" className="hover:text-teal-400 transition-colors text-white">Eco-Friendly, and Power</a></li>
-              <li><a href="#" className="hover:text-teal-400 transition-colors text-white">Foodstuff</a></li>
-            </ul>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-300">
+              <a href="#" className="hover:text-teal-400 transition-colors text-white">Electronics</a>
+              <a href="#" className="hover:text-teal-400 transition-colors text-white">Beauty, Fashion & Sports</a>
+              <a href="#" className="hover:text-teal-400 transition-colors text-white">Home & Living</a>
+              <a href="#" className="hover:text-teal-400 transition-colors text-white">Eco-Friendly, and Power</a>
+              <a href="#" className="hover:text-teal-400 transition-colors text-white">Foodstuff</a>
+            </div>
           </div>
 
           <div>

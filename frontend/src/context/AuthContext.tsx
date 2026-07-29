@@ -87,6 +87,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       if (!response.ok) {
+        // If email not verified, include requiresOtp flag so page can redirect
+        if (data.requiresOtp) {
+          const err: any = new Error(data.message || 'Please verify your email first');
+          err.requiresOtp = true;
+          err.email = email;
+          throw err;
+        }
         throw new Error(data.message || 'Login failed');
       }
 
@@ -114,10 +121,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(data.message || 'Registration failed');
       }
 
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      toast.success('Registration successful!');
+      // No token — user must verify email via OTP first
+      toast.success('Account created! Please verify your email with the OTP sent to your inbox.');
+      return data;
     } catch (error: any) {
       toast.error(error.message);
       throw error;
