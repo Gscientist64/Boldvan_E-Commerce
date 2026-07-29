@@ -287,7 +287,7 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* ──── TOP BANNER ──── */}
-      <div className="relative bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900 pb-8">
+      <div className="relative bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-600 pb-8">
         <div className="max-w-6xl mx-auto px-4 pt-6">
           <button
             onClick={() => navigate('/')}
@@ -298,7 +298,7 @@ const ProfilePage = () => {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-[3px] border-white/20 shadow-xl">
-              <AvatarFallback className="bg-boldvan-gradient text-white text-xl sm:text-2xl font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-xl sm:text-2xl font-bold">
                 {getInitials()}
               </AvatarFallback>
             </Avatar>
@@ -327,10 +327,10 @@ const ProfilePage = () => {
             {/* Stats cards */}
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 mb-4">
               {[
-                { icon: Package, label: 'Orders', value: stats?.totalOrders ?? '—', color: 'bg-blue-500' },
-                { icon: TrendingUp, label: 'Spent', value: stats ? formatNaira(stats.totalSpent) : '—', color: 'bg-green-500' },
-                { icon: Heart, label: 'Wishlist', value: stats?.wishlistCount ?? '—', color: 'bg-pink-500' },
-                { icon: Star, label: 'Reviews', value: stats?.reviewCount ?? '—', color: 'bg-amber-500' },
+                { icon: Package, label: 'Orders', value: stats?.totalOrders ?? '—', color: 'bg-teal-500' },
+                { icon: TrendingUp, label: 'Spent', value: stats ? formatNaira(stats.totalSpent) : '—', color: 'bg-emerald-500' },
+                { icon: Heart, label: 'Wishlist', value: stats?.wishlistCount ?? '—', color: 'bg-teal-500' },
+                { icon: Star, label: 'Reviews', value: stats?.reviewCount ?? '—', color: 'bg-emerald-500' },
               ].map((s, i) => (
                 <Card key={i} className="border-0 shadow-sm">
                   <CardContent className="p-3 flex items-center gap-3">
@@ -356,7 +356,7 @@ const ProfilePage = () => {
                       onClick={() => setActiveTab(item.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                         activeTab === item.id
-                          ? 'bg-boldvan-gradient text-white shadow-md'
+                          ? 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white shadow-md'
                           : 'text-slate-600 hover:bg-slate-100'
                       }`}
                     >
@@ -422,7 +422,7 @@ const ProfilePage = () => {
                             <X className="h-3.5 w-3.5 mr-1" /> Cancel
                           </Button>
                           <Button size="sm" onClick={handleSaveProfile} disabled={isLoading}
-                            className="bg-boldvan-gradient text-white">
+                            className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white">
                             {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
                             Save
                           </Button>
@@ -457,7 +457,12 @@ const ProfilePage = () => {
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <Input value={formData.email} disabled className="pl-9 bg-slate-50 text-slate-500" />
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1">Email cannot be changed</p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <p className="text-[10px] text-slate-400">Email cannot be changed</p>
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                              <CheckCircle className="h-2.5 w-2.5" /> Verified
+                            </span>
+                          </div>
                         </div>
                         <div>
                           <Label className="text-xs text-slate-500">Phone</Label>
@@ -490,9 +495,9 @@ const ProfilePage = () => {
                           { icon: Star, label: 'Reviews', val: stats?.reviewCount ?? '—' },
                         ].map((s, i) => (
                           <div key={i} className="bg-slate-50 rounded-lg p-3">
-                            <s.icon className="h-4 w-4 mx-auto text-slate-400 mb-1" />
+                          <s.icon className="h-4 w-4 mx-auto text-teal-500 mb-1" />
                             <p className="text-[10px] text-slate-500">{s.label}</p>
-                            <p className="text-sm font-semibold text-slate-700 capitalize">{s.val}</p>
+                            <p className="text-sm font-semibold text-slate-800 capitalize">{s.val}</p>
                           </div>
                         ))}
                       </div>
@@ -513,7 +518,7 @@ const ProfilePage = () => {
                         <div className="text-center py-10">
                           <ShoppingBag className="h-10 w-10 text-slate-300 mx-auto mb-3" />
                           <p className="text-slate-500 mb-3">No orders yet</p>
-                          <Button size="sm" onClick={() => navigate('/shop')} className="bg-boldvan-gradient text-white">
+                          <Button size="sm" onClick={() => navigate('/shop')} className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white">
                             Start Shopping
                           </Button>
                         </div>
@@ -621,7 +626,7 @@ const ProfilePage = () => {
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">Preferences</CardTitle>
                       <Button size="sm" onClick={handleSavePrefs} disabled={isSavingPrefs}
-                        className="bg-boldvan-gradient text-white">
+                        className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white">
                         {isSavingPrefs ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <CheckCircle className="h-3.5 w-3.5 mr-1" />}
                         Save
                       </Button>
