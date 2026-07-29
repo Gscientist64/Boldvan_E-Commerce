@@ -15,7 +15,8 @@ async function main() {
       where: { email },
       data: {
         password: hashed,
-        role: 'ADMIN'
+        role: 'ADMIN',
+        emailVerified: true
       }
     });
     console.log('Updated existing user to role ADMIN and reset password.');
@@ -24,7 +25,8 @@ async function main() {
       data: {
         email,
         password: hashed,
-        role: 'ADMIN'
+        role: 'ADMIN',
+        emailVerified: true
       }
     });
     console.log(`Admin user created: ${user.email}`);

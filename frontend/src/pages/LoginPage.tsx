@@ -419,6 +419,7 @@ const LoginPage: React.FC = () => {
               {/* Google Sign-In Button */}
               <div className="flex justify-center mb-3">
                 <GoogleLogin
+                  key={activeTab}
                   onSuccess={handleGoogleSuccess}
                   onError={() => setError('Google sign-in failed. Please try again.')}
                   theme="outline"
