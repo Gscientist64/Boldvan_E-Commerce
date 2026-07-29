@@ -38,8 +38,11 @@ const PORT = process.env.PORT || 5000;
 // If running behind a proxy (like Render), trust first proxy
 app.set('trust proxy', 1);
 
-// Security middlewares
-app.use(helmet());
+// Security middlewares (disable COOP to allow Google OAuth popup postMessage)
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'unsafe-none' },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 // Basic rate limiting to mitigate brute-force and DDOS
 const limiter = rateLimit({
