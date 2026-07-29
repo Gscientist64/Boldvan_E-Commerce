@@ -350,7 +350,7 @@ const UserManagement = () => {
     e.preventDefault();
     createUserMutation.mutate({
       ...editForm,
-      password: 'Password123!' // Default password, user should change on first login
+      password: '' // Admin must set a password when creating a user
     });
   };
 
