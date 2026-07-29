@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+// @ts-ignore - optional dev dependency for types may not be installed in every environment
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { prisma } from './utils/database';
 import { authenticate } from './middleware/auth.middleware'; // ✅ ADD THIS
@@ -30,6 +33,21 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// If running behind a proxy (like Render), trust first proxy
+app.set('trust proxy', 1);
+
+// Security middlewares
+app.use(helmet());
+
+// Basic rate limiting to mitigate brute-force and DDOS
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
 
 // Middleware
 app.use(cors({

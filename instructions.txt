@@ -1,13 +1,14 @@
-Login as admin:
+Development setup
 
-Email: ekpeusa@gmail.com
+- To start the backend server:
+	- cd backend
+	- npm install
+	- npm run dev
 
-Password: Password1@
+- Admin and test user credentials are NOT stored in this file. Use the seeding script to create initial accounts:
+	- Set `SEED_ADMIN_PASSWORD` and `SEED_USER_PASSWORD` in your environment (or let the seeder generate random passwords).
+	- Run: `npm run seed`
 
-TO start the backend server - cd backend - npm run dev
+- For payment gateway testing, use your provider's sandbox/test credentials configured through environment variables. Do NOT commit real card details or API keys.
 
-Paystack demo account card:
-card Number -  4084 0840 8408 4081
-Expiry Date - 12/30
-CVV - 456
-OTP - 9090
+Security note: This file previously contained plaintext credentials and demo card data. Those values have been removed. Keep secrets in environment variables or your hosting provider's secrets manager.

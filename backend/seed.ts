@@ -4,8 +4,9 @@ import bcrypt from 'bcryptjs';
 async function seed() {
   console.log('🌱 Starting database seeding...');
 
-  // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  // Create admin user (use env-provided password or generate a strong random one)
+  const adminPasswordPlain = process.env.SEED_ADMIN_PASSWORD || require('crypto').randomBytes(8).toString('hex');
+  const hashedPassword = await bcrypt.hash(adminPasswordPlain, 10);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@solar.com' },
     update: {},
@@ -131,8 +132,9 @@ async function seed() {
     }),
   ]);
 
-  // Create a regular user for testing
-  const userPassword = await bcrypt.hash('user123', 10);
+  // Create a regular user for testing (env-provided or generated)
+  const userPasswordPlain = process.env.SEED_USER_PASSWORD || require('crypto').randomBytes(8).toString('hex');
+  const userPassword = await bcrypt.hash(userPasswordPlain, 10);
   await prisma.user.upsert({
     where: { email: 'user@example.com' },
     update: {},
@@ -149,12 +151,12 @@ async function seed() {
   console.log('✅ Seeding completed successfully!');
   console.log('========================================');
   console.log('👑 Admin Credentials:');
-  console.log('   Email: admin@solar.com');
-  console.log('   Password: admin123');
+  console.log(`   Email: ${admin.email}`);
+  console.log(`   Password: ${process.env.SEED_ADMIN_PASSWORD ? 'from SEED_ADMIN_PASSWORD env' : adminPasswordPlain}`);
   console.log('========================================');
   console.log('👤 Test User Credentials:');
   console.log('   Email: user@example.com');
-  console.log('   Password: user123');
+  console.log(`   Password: ${process.env.SEED_USER_PASSWORD ? 'from SEED_USER_PASSWORD env' : userPasswordPlain}`);
   console.log('========================================');
   console.log(`📦 Created ${categories.length} categories`);
   console.log(`🔧 Created ${services.length} services`);
