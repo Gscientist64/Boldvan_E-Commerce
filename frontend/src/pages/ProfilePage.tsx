@@ -285,10 +285,15 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       {/* ──── TOP BANNER ──── */}
       <div className="relative bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-600 pb-8">
-        <div className="max-w-6xl mx-auto px-4 pt-6">
+        {/* Decorative orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl" />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 pt-6 relative z-10">
           <button
             onClick={() => navigate('/')}
             className="text-white/60 hover:text-white flex items-center gap-1 text-sm mb-6 transition-colors"
@@ -327,14 +332,14 @@ const ProfilePage = () => {
             {/* Stats cards */}
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 mb-4">
               {[
-                { icon: Package, label: 'Orders', value: stats?.totalOrders ?? '—', color: 'bg-teal-500' },
-                { icon: TrendingUp, label: 'Spent', value: stats ? formatNaira(stats.totalSpent) : '—', color: 'bg-emerald-500' },
-                { icon: Heart, label: 'Wishlist', value: stats?.wishlistCount ?? '—', color: 'bg-teal-500' },
-                { icon: Star, label: 'Reviews', value: stats?.reviewCount ?? '—', color: 'bg-emerald-500' },
+                { icon: Package, label: 'Orders', value: stats?.totalOrders ?? '—', color: 'bg-gradient-to-br from-teal-500 to-emerald-600' },
+                { icon: TrendingUp, label: 'Spent', value: stats ? formatNaira(stats.totalSpent) : '—', color: 'bg-gradient-to-br from-emerald-500 to-green-600' },
+                { icon: Heart, label: 'Wishlist', value: stats?.wishlistCount ?? '—', color: 'bg-gradient-to-br from-teal-400 to-cyan-600' },
+                { icon: Star, label: 'Reviews', value: stats?.reviewCount ?? '—', color: 'bg-gradient-to-br from-amber-500 to-orange-600' },
               ].map((s, i) => (
-                <Card key={i} className="border-0 shadow-sm">
+                <Card key={i} className="border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <div className={`${s.color} p-2 rounded-lg text-white`}>
+                    <div className={`${s.color} p-2.5 rounded-xl text-white shadow-lg`}>
                       <s.icon className="h-4 w-4" />
                     </div>
                     <div>
@@ -347,7 +352,7 @@ const ProfilePage = () => {
             </div>
 
             {/* Nav */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border border-slate-200 shadow-sm">
               <CardContent className="p-1.5">
                 <nav className="space-y-0.5">
                   {SIDEBAR_ITEMS.map((item) => (
@@ -369,11 +374,11 @@ const ProfilePage = () => {
             </Card>
 
             {/* Profile completion */}
-            <Card className="border-0 shadow-sm mt-4">
+            <Card className="border border-slate-200 shadow-sm mt-4">
               <CardContent className="p-4">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Profile Complete</p>
                 <div className="flex items-center gap-3 mb-2">
-                  <Progress value={profilePercent} className="h-2 flex-1" />
+                  <Progress value={profilePercent} className="h-2 flex-1 [&>div]:bg-gradient-to-r [&>div]:from-teal-500 [&>div]:to-emerald-600" />
                   <span className="text-sm font-bold text-slate-700">{profilePercent}%</span>
                 </div>
                 {profilePercent < 100 && (
@@ -409,7 +414,7 @@ const ProfilePage = () => {
               >
                 {/* ─── PROFILE TAB ─── */}
                 {activeTab === 'profile' && (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-slate-200 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                       <CardTitle className="text-lg">Personal Information</CardTitle>
                       {!isEditing ? (
@@ -494,7 +499,7 @@ const ProfilePage = () => {
                           { icon: Package, label: 'Orders', val: stats?.totalOrders ?? '—' },
                           { icon: Star, label: 'Reviews', val: stats?.reviewCount ?? '—' },
                         ].map((s, i) => (
-                          <div key={i} className="bg-slate-50 rounded-lg p-3">
+                          <div key={i} className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-lg p-3 border border-teal-100/50">
                           <s.icon className="h-4 w-4 mx-auto text-teal-500 mb-1" />
                             <p className="text-[10px] text-slate-500">{s.label}</p>
                             <p className="text-sm font-semibold text-slate-800 capitalize">{s.val}</p>
@@ -507,7 +512,7 @@ const ProfilePage = () => {
 
                 {/* ─── ORDERS TAB ─── */}
                 {activeTab === 'orders' && (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-slate-200 shadow-sm">
                     <CardHeader>
                       <CardTitle className="text-lg">My Orders</CardTitle>
                     </CardHeader>
@@ -525,7 +530,7 @@ const ProfilePage = () => {
                       ) : (
                         <div className="space-y-3">
                           {stats.recentOrders.map((order) => (
-                            <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                            <div key={order.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-teal-200 hover:shadow-sm transition-all cursor-pointer"
                               onClick={() => navigate(`/tracking?order=${order.orderNumber}`)}>
                               <div>
                                 <p className="font-semibold text-sm text-slate-800">{order.orderNumber}</p>
@@ -545,7 +550,7 @@ const ProfilePage = () => {
 
                 {/* ─── SECURITY TAB ─── */}
                 {activeTab === 'security' && (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-slate-200 shadow-sm">
                     <CardHeader>
                       <CardTitle className="text-lg">Security</CardTitle>
                     </CardHeader>
@@ -560,7 +565,7 @@ const ProfilePage = () => {
                             Change Password
                           </Button>
                         ) : (
-                          <div className="space-y-3 bg-slate-50 rounded-lg p-4 border">
+                          <div className="space-y-3 bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                             {['currentPassword', 'newPassword', 'confirmPassword'].map((field, i) => (
                               <div key={field}>
                                 <Label className="text-xs text-slate-600">
@@ -585,7 +590,7 @@ const ProfilePage = () => {
                             ))}
                             <div className="flex gap-2 pt-1">
                               <Button size="sm" onClick={handleChangePassword} disabled={isLoading}
-                                className="bg-boldvan-gradient text-white">
+                                className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white">
                                 {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                                 Update Password
                               </Button>
@@ -605,7 +610,7 @@ const ProfilePage = () => {
                         <h4 className="font-medium text-sm flex items-center gap-2 mb-3">
                           <Clock className="h-4 w-4 text-slate-500" /> Active Session
                         </h4>
-                        <div className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
+                        <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-3">
                           <div className="flex items-center gap-3">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                             <div>
@@ -622,7 +627,7 @@ const ProfilePage = () => {
 
                 {/* ─── PREFERENCES TAB ─── */}
                 {activeTab === 'preferences' && (
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-slate-200 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">Preferences</CardTitle>
                       <Button size="sm" onClick={handleSavePrefs} disabled={isSavingPrefs}
