@@ -103,3 +103,60 @@ export async function sendPasswordResetEmail(
 
   return { previewUrl: previewUrl || undefined };
 }
+
+export async function sendOtpEmail(
+  to: string,
+  otp: string,
+  type: 'REGISTRATION' | 'RESET_PASSWORD'
+): Promise<{ previewUrl?: string }> {
+  const transport = await createTransporter();
+  const name = to.split('@')[0];
+
+  const subject = type === 'REGISTRATION'
+    ? 'Verify your BOLDVAN email'
+    : 'Your BOLDVAN password reset code';
+
+  const heading = type === 'REGISTRATION'
+    ? 'Verify Your Email Address'
+    : 'Password Reset Code';
+
+  const message = type === 'REGISTRATION'
+    ? 'Thanks for creating an account! Use the OTP below to verify your email address:'
+    : 'Use the OTP below to reset your password:';
+
+  const mailOptions = {
+    from: `"BOLDVAN" <${process.env.SMTP_USER || 'noreply@boldvan.com'}>`,
+    to,
+    subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+          <h1 style="color: #2dd4bf; margin: 0; font-size: 24px;">BOLD<span style="color: #ffffff;">VAN</span></h1>
+          <p style="color: #94a3b8; margin-top: 8px;">Smart Tech, Clean Power</p>
+        </div>
+        <div style="background: #ffffff; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1e293b; margin-bottom: 16px;">${heading}</h2>
+          <p style="color: #475569; line-height: 1.6;">Hi ${name},</p>
+          <p style="color: #475569; line-height: 1.6;">${message}</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <div style="display: inline-block; background: #f1f5f9; padding: 16px 40px; border-radius: 12px; letter-spacing: 12px; font-size: 32px; font-weight: bold; color: #0d9488; font-family: 'Courier New', monospace;">
+              ${otp}
+            </div>
+          </div>
+          <p style="color: #94a3b8; font-size: 13px; text-align: center;">
+            This code expires in <strong>10 minutes</strong>. If you didn't request this, you can safely ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  const info = await transport.sendMail(mailOptions);
+
+  const previewUrl = nodemailer.getTestMessageUrl(info);
+  if (previewUrl) {
+    console.log(`📧 OTP preview URL: ${previewUrl}`);
+  }
+
+  return { previewUrl: previewUrl || undefined };
+}

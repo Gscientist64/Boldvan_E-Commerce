@@ -414,13 +414,13 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
   return (
     <div className="w-full">
       {/* Hero Section - Full Width */}
-      <section className="relative min-h-[500px] md:h-[600px] overflow-hidden w-full">
+      <section className="relative min-h-[360px] sm:min-h-[420px] md:h-[600px] overflow-hidden w-full">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <img 
             src={heroImage} 
             alt="Solar Power Solutions" 
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-center sm:object-center md:object-left"
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-transparent" />
@@ -502,12 +502,12 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="text-5xl md:text-6xl font-bold mb-4 leading-tight"
+                  className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 leading-tight"
                 >
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-300 via-teal-200 to-white text-4xl md:text-5xl block mb-2">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-300 via-teal-200 to-white text-2xl sm:text-3xl md:text-5xl block mb-2">
                     Always One Click Away:
                   </span>
-                  <span className="text-3xl md:text-4xl block leading-relaxed">
+                  <span className="text-xl sm:text-2xl md:text-4xl block leading-relaxed">
                     Smart Tech, Clean Power, Affordable Rates.
                   </span>
                 </motion.h1>
@@ -516,7 +516,7 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 }}
-                  className="text-lg mb-6 text-slate-200 leading-relaxed max-w-2xl"
+                  className="text-sm sm:text-base md:text-lg mb-6 text-slate-200 leading-relaxed max-w-2xl"
                 >
                   Premium solar equipment, expert installation services, and complete energy solutions for homes and businesses across Nigeria.
                 </motion.p>
@@ -525,11 +525,11 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1 }}
-                  className="flex flex-col sm:flex-row gap-4"
+                  className="flex flex-col gap-4 sm:flex-row"
                 >
                   <Button 
                     onClick={() => handleNavigateToShop()} 
-                    className="group px-6 py-4 rounded-xl font-bold hover:scale-105 transition-all bg-gradient-to-r from-teal-500 to-teal-600 text-slate-900 text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30"
+                    className="w-full sm:w-auto group px-6 py-4 rounded-xl font-bold hover:scale-105 transition-all bg-gradient-to-r from-teal-500 to-teal-600 text-slate-900 text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30"
                   >
                     <Sun className="h-5 w-5 group-hover:rotate-90 transition-transform" />
                     Shop Solar Products
@@ -538,13 +538,11 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
                   <Button 
                     onClick={handleNavigateToBooking} 
                     variant="outline"
-                    className="group px-6 py-4 rounded-xl font-bold hover:bg-white/10 transition-all border-2 border-white/30 text-white text-base backdrop-blur-sm"
+                    className="w-full sm:w-auto group px-6 py-4 rounded-xl font-bold hover:bg-white/10 transition-all border-2 border-white/30 text-white text-base backdrop-blur-sm"
                   >
                     Book Free Consultation
-                    <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
-
                 {/* Trust Badges */}
                 <motion.div 
                   initial={{ opacity: 0 }}
@@ -665,7 +663,7 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                  className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
                 >
                   {featuredProducts.map((product: any, index: number) => (
                     <motion.div key={product.id} variants={itemVariants}>

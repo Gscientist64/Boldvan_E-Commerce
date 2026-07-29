@@ -9,6 +9,7 @@ import { authenticate } from './middleware/auth.middleware'; // ✅ ADD THIS
 
 // Routes
 import authRoutes from './routes/auth.routes';
+import otpRoutes from './routes/otp.routes';
 import productRoutes from './routes/products.routes';
 import orderRoutes from './routes/orders.routes';
 import serviceRoutes from './routes/services.routes';
@@ -69,13 +70,14 @@ app.use(cors({
       callback(null, true);
     } else {
       // Also check explicit origins from env
-      const explicitOrigins = [
-        process.env.FRONTEND_URL
-      ].filter(Boolean);
-      
+      const explicitOriginsEnv = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '';
+      const explicitOrigins = explicitOriginsEnv.split(',').map(s => s.trim()).filter(Boolean);
+
       if (explicitOrigins.indexOf(origin) !== -1) {
+        console.log('✅ CORS allowed (explicit):', origin);
         callback(null, true);
       } else {
+        console.warn('⛔ CORS blocked for origin:', origin);
         callback(new Error('Not allowed by CORS'));
       }
     }
@@ -92,6 +94,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Public Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/otp', otpRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/services', serviceRoutes);

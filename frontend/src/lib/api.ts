@@ -74,6 +74,16 @@ export const authApi = {
     api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) =>
     api.post('/auth/reset-password', { token, password }),
+  googleAuth: (credential: string) =>
+    api.post('/auth/google', { credential }),
+};
+
+// OTP API
+export const otpApi = {
+  sendOtp: (email: string, type: 'REGISTRATION' | 'RESET_PASSWORD') =>
+    api.post('/otp/send', { email, type }),
+  verifyOtp: (email: string, otp: string, type: 'REGISTRATION' | 'RESET_PASSWORD') =>
+    api.post('/otp/verify', { email, otp, type }),
 };
 
 // User APIs

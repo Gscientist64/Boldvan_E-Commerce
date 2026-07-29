@@ -47,7 +47,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onAdd
       className="overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
       onClick={handleCardClick}
     >
-      <div className="aspect-square overflow-hidden bg-gray-100 relative">
+      <div className="h-48 sm:aspect-square overflow-hidden bg-gray-100 relative">
         {product.image ? (
           <img
             src={product.image}
@@ -83,15 +83,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onAdd
           )}
         </div>
         
-        <h3 className="font-bold text-lg mb-1 line-clamp-1 overflow-hidden text-ellipsis">{product.name}</h3>
+        <h3 className="font-bold text-base md:text-lg mb-1 line-clamp-1 overflow-hidden text-ellipsis">{product.name}</h3>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2 overflow-hidden text-ellipsis min-h-[2.5rem]">
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2 overflow-hidden text-ellipsis min-h-[2.25rem] sm:min-h-[2.5rem]">
           {product.description || 'No description available'}
         </p>
         
         <div className="flex items-center justify-between mb-3">
           <div>
-            <span className="text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
+            <span className="text-lg md:text-2xl font-bold text-gray-900 whitespace-nowrap">
               {formatNaira(product.price)}
             </span>
             {product.rating && (
@@ -114,7 +114,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onAdd
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Button
             variant="outline"
             className="w-full"
