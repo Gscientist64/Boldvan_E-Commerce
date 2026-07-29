@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { body, validationResult } from 'express-validator';
 import { prisma } from '../utils/database';
-import { sendPasswordResetEmail } from '../utils/mail';
+import { sendPasswordResetEmail, sendOtpEmail } from '../utils/mail';
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -55,6 +55,22 @@ router.post('/register', [
         createdAt: true
       }
     });
+
+    // Auto-send OTP for email verification
+    try {
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await prisma.otpVerification.create({
+        data: { email, otp, type: 'REGISTRATION', expiresAt }
+      });
+
+      await sendOtpEmail(email, otp, 'REGISTRATION');
+      console.log(`📧 OTP sent to ${email} for registration verification`);
+    } catch (otpError) {
+      // Log but don't fail registration if email fails
+      console.error('⚠️ Failed to send OTP email:', otpError);
+    }
 
     res.status(201).json({
       user,

@@ -38,6 +38,27 @@ const OtpVerificationPage: React.FC = () => {
     }
   }, []);
 
+  // Auto-send OTP on page load
+  useEffect(() => {
+    if (!email) return;
+    const autoSendOtp = async () => {
+      try {
+        const response = await fetch(`${API_URL}/otp/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, type: 'REGISTRATION' }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setCountdown(30);
+        }
+      } catch {
+        // Silently fail - user can click resend
+      }
+    };
+    autoSendOtp();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
