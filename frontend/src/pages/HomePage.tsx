@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { publicApi } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
+import ConnectionError from '@/components/ConnectionError';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
@@ -152,7 +153,12 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
   const { toast } = useToast();
   
   // Fetch featured products from database
-  const { data: featuredProductsData, isLoading: productsLoading } = useQuery({
+  const {
+    data: featuredProductsData,
+    isLoading: productsLoading,
+    error: productsError,
+    refetch: refetchFeatured,
+  } = useQuery({
     queryKey: ['products', 'featured'],
     queryFn: () => publicApi.getProducts({ featured: true, limit: 8 }),
   });
@@ -635,7 +641,9 @@ const HomePage: React.FC<HomePageProps> = ({ onViewProduct, onNavigate }) => {
               </motion.div>
             </motion.div>
 
-            {featuredProducts.length === 0 ? (
+            {productsError ? (
+              <ConnectionError compact onRetry={() => refetchFeatured()} />
+            ) : featuredProducts.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}

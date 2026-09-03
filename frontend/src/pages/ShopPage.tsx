@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ConnectionError from '@/components/ConnectionError';
 import {
   Select,
   SelectContent,
@@ -471,7 +472,9 @@ const ShopPage: React.FC = () => {
   }
 
   if (!apiTest?.ok) {
-    return (
+    // Friendly branded offline screen (old developer troubleshooting is disabled below).
+    return <ConnectionError onRetry={() => window.location.reload()} />;
+    if (false) return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
         <div className="max-w-2xl w-full">
           <Alert variant="destructive" className="mb-6 border-2 border-red-200 bg-red-50">
