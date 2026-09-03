@@ -37,7 +37,7 @@ const verifyWithProvider = async ({ url, secretKey }: { url: string; secretKey: 
 router.post('/', authenticate, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const { items, shipping, paymentMethod, subtotal, total, notes, idempotencyKey } = req.body;
+    const { items, shipping, paymentMethod, notes, idempotencyKey, deliveryMethodId } = req.body;
 
     console.log('Creating order for user:', userId);
     console.log('Order data:', req.body);
@@ -83,30 +83,72 @@ router.post('/', authenticate, async (req, res) => {
     const estimatedDelivery = new Date();
     estimatedDelivery.setDate(estimatedDelivery.getDate() + 5);
 
-    // Validate stock and prepare product updates
+    // Validate line items and compute an AUTHORITATIVE subtotal from DB prices.
+    // Client-supplied price / name / subtotal / total are never trusted for money.
     const productUpdates = [];
+    let subtotal = 0;
     for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { id: true, price: true, stock: true, name: true }
-      });
+      const productId = item?.productId;
+      const quantity = Number(item?.quantity);
 
-      if (!product) {
-        return res.status(404).json({ message: `Product ${item.productId} not found` });
+      if (typeof productId !== 'string' || !productId) {
+        return res.status(400).json({ message: 'Each item must include a valid productId' });
+      }
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+        return res.status(400).json({ message: 'Item quantity must be a whole number between 1 and 99' });
       }
 
-      if (product.stock < item.quantity) {
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { id: true, price: true, stock: true, name: true, isActive: true }
+      });
+
+      if (!product || product.isActive === false) {
+        return res.status(404).json({ message: `Product ${productId} not found` });
+      }
+
+      if (product.stock < quantity) {
         return res.status(400).json({ 
           message: `Insufficient stock for ${product.name}. Available: ${product.stock}`
         });
       }
 
+      subtotal += product.price * quantity;
       productUpdates.push({
         productId: product.id,
-        quantity: item.quantity,
-        newStock: product.stock - item.quantity
+        quantity,
+        newStock: product.stock - quantity,
+        price: product.price,
+        name: product.name
       });
     }
+
+    // Authoritative shipping fee from the admin-managed DeliveryMethod table.
+    // The client only supplies the chosen method id; the fee is read from the DB.
+    let shippingFee = 0;
+    let resolvedDeliveryMethodId: string | undefined;
+    if (deliveryMethodId) {
+      const method = await prisma.deliveryMethod.findFirst({
+        where: { id: deliveryMethodId, isActive: true },
+        select: { id: true, baseFee: true }
+      });
+      if (method) {
+        shippingFee = Math.max(0, method.baseFee || 0);
+        resolvedDeliveryMethodId = method.id;
+      }
+    }
+
+    // Fallback for legacy/test clients that don't send a method id: keep the
+    // client-supplied fee bounded instead of trusting it blindly.
+    if (!resolvedDeliveryMethodId) {
+      const rawShippingFee = Number(shipping?.shippingFee);
+      const MAX_SHIPPING_FEE = 5000;
+      shippingFee = Number.isFinite(rawShippingFee) && rawShippingFee > 0
+        ? Math.min(Math.max(rawShippingFee, 0), MAX_SHIPPING_FEE)
+        : 0;
+    }
+
+    const totalAmount = Math.round((subtotal + shippingFee) * 100) / 100;
 
     // Create order in transaction
     const order = await prisma.$transaction(async (tx) => {
@@ -127,20 +169,21 @@ router.post('/', authenticate, async (req, res) => {
           orderNumber,
           userId,
           status: 'PENDING',
-          totalAmount: total,
-          subtotal: subtotal,
-          shippingFee: shipping.shippingFee || 0,
+          totalAmount,
+          subtotal,
+          shippingFee,
+          ...(resolvedDeliveryMethodId ? { deliveryMethodId: resolvedDeliveryMethodId, deliveryFee: shippingFee } : {}),
           paymentMethod,
           paymentStatus: 'pending',
           ...(idempotencyKey ? { idempotencyKey } : {}),
           notes,
           estimatedDelivery,
           items: {
-            create: items.map((item: any) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              price: item.price,
-              name: item.name
+            create: productUpdates.map((update) => ({
+              productId: update.productId,
+              quantity: update.quantity,
+              price: update.price,
+              name: update.name
             }))
           },
           shipping: {

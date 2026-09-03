@@ -109,8 +109,10 @@ const CheckoutPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [orderTotal, setOrderTotal] = useState<number | null>(null); // server-authoritative total
   const [paymentMethod, setPaymentMethod] = useState('paystack');
   const [shippingMethod, setShippingMethod] = useState('');
+  const [deliveryMethods, setDeliveryMethods] = useState<ShippingMethod[]>([]);
   const [saveAddress, setSaveAddress] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
 
@@ -240,11 +242,6 @@ const CheckoutPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   }, [formData]);
 
-  const selectedShipping = useMemo(() => 
-    SHIPPING_METHODS.find(m => m.id === shippingMethod),
-    [shippingMethod]
-  );
-
   const shippingCost = useMemo(() => 
     selectedShipping?.price || 0,
     [selectedShipping]
@@ -253,6 +250,45 @@ const CheckoutPage: React.FC = () => {
   const totalAmount = useMemo(() => 
     total + shippingCost,
     [total, shippingCost]
+  );
+
+  // Load delivery methods + fees from the backend (admin-managed) so shipping
+  // prices are never hardcoded on the client. Falls back to defaults if offline.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/delivery/methods`);
+        if (!response.ok) throw new Error('Delivery methods request failed');
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : [];
+        if (!cancelled) {
+          setDeliveryMethods(
+            list
+              .filter((m: any) => m.isActive !== false)
+              .map((m: any) => ({
+                id: m.id,
+                name: m.name,
+                price: Number(m.baseFee) || 0,
+                estimatedDays: m.estimatedDays || '1-3',
+                description: m.description || ''
+              }))
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load delivery methods, using defaults:', error);
+        if (!cancelled) setDeliveryMethods([]); // fallback list is used in render
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Use DB methods when available; fall back to the built-in list if empty/offline.
+  const availableMethods = deliveryMethods.length > 0 ? deliveryMethods : SHIPPING_METHODS;
+
+  const selectedShipping = useMemo(() => 
+    availableMethods.find(m => m.id === shippingMethod),
+    [availableMethods, shippingMethod]
   );
 
   const handleNextStep = useCallback(() => {
@@ -313,6 +349,7 @@ const CheckoutPage: React.FC = () => {
           shippingFee: shippingCost
         },
         paymentMethod,
+        deliveryMethodId: selectedShipping?.id || null,
         subtotal: total,
         total: totalAmount,
         notes: formData.deliveryInstructions,
@@ -335,6 +372,8 @@ const CheckoutPage: React.FC = () => {
 
       const order = await response.json();
       setOrderId(order.id);
+      // Use the server-computed total (from DB prices) as the single source of truth for charging.
+      setOrderTotal(order.order?.totalAmount ?? order.totalAmount ?? null);
       // Rotate the key after a successful order so the next checkout is a fresh logical order.
       idempotencyKeyRef.current = newCheckoutKey();
       setShowPaymentModal(true);
@@ -592,7 +631,7 @@ const CheckoutPage: React.FC = () => {
 
                   <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
                     <div className="space-y-4">
-                      {SHIPPING_METHODS.map((method) => (
+                      {availableMethods.map((method) => (
                         <div
                           key={method.id}
                           className={`flex items-start space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-all ${
@@ -794,7 +833,7 @@ const CheckoutPage: React.FC = () => {
       <PaymentModal
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
-        amount={totalAmount}
+        amount={orderTotal ?? totalAmount}
         email={formData.email}
         orderId={orderId}
         onSuccess={handlePaymentSuccess}

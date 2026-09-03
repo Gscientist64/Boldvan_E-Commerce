@@ -23,8 +23,10 @@ node prisma/seed.js # or ts-node prisma/seed.ts if using ts
 - Neon provides serverless Postgres and requires a connection string with SSL enabled. Use the connection string format you provided as the `DATABASE_URL` in Render:
 
 ```
-postgresql://neondb_owner:npg_s9YEhtOzW5Qj@ep-autumn-rain-aycty5b2-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+postgresql://neondb_owner:<YOUR_NEON_PASSWORD>@ep-autumn-rain-aycty5b2-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 ```
+
+> ⚠️ **SECURITY:** Never commit a real database password. Use `<YOUR_NEON_PASSWORD>` (or a Neon "role password") here and keep the actual value only in your hosting provider's secret manager / local `.env` (gitignored). If a real password was ever committed, rotate it in Neon.
 
 - Steps:
 	1. In Neon dashboard, create a project and a database. Whitelist Render's outbound IPs if required (Neon may require connection policies).

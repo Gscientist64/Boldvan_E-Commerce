@@ -30,6 +30,7 @@ import wishlistRoutes from './routes/wishlist.routes';
 import cartRoutes from './routes/cart.routes';
 import profileRoutes from './routes/profile.routes';
 import uploadRoutes from './routes/admin/upload.routes';
+import webhooksRoutes from './routes/webhooks.routes';
 import path from 'path';
 import fs from 'fs';
 
@@ -43,8 +44,15 @@ app.set('trust proxy', 1);
 
 // Security middlewares (disable COOP to allow Google OAuth popup postMessage)
 app.use(helmet({
-  crossOriginOpenerPolicy: { policy: 'unsafe-none' },
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'unsafe-none' }, // Required for Google OAuth popup postMessage
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images/fonts to be fetched cross-origin
+  // Strict-Transport-Security: only upgrade once the site is served over HTTPS.
+  // 'preload' is intentionally off - enable manually at hstspreload.org after HTTPS is confirmed.
+  hsts: {
+    maxAge: 15552000, // 180 days
+    includeSubDomains: true,
+    preload: false
+  }
 }));
 
 // Basic rate limiting to mitigate brute-force and DDOS
@@ -95,7 +103,10 @@ app.use(cors({
 
 // Handle preflight requests
 app.options('*', cors());
-app.use(express.json());
+// Capture the raw body so Paystack webhook HMAC signatures can be verified.
+app.use(express.json({
+  verify: (req: any, _res, buf) => { req.rawBody = buf.toString('utf8'); }
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files (multer writes to UPLOAD_PATH)
@@ -132,6 +143,9 @@ app.use('/api/admin/users', usersRoutes);
 app.use('/api/admin/roles', rolesRoutes);
 app.use('/api/admin/logs', logsRoutes);
 app.use('/api/admin/upload', uploadRoutes);
+
+// Payment provider webhooks (signature verified inside webhooks.routes.ts)
+app.use('/api/webhooks', webhooksRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
