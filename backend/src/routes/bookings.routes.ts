@@ -3,11 +3,12 @@ import { prisma } from '../utils/database';
 import { authenticate } from '../middleware/auth.middleware';
 import { body } from 'express-validator';
 import { validate } from '../utils/validate';
+import { bookingLimiter } from '../utils/rateLimits';
 
 const router = express.Router();
 
 // Create booking
-router.post('/', authenticate, validate([
+router.post('/', authenticate, bookingLimiter, validate([
   body('serviceId').isString().withMessage('Service is required').bail().trim().notEmpty().withMessage('Service is required'),
   body('date').isISO8601().withMessage('A valid date is required'),
   body('timeSlot').isString().withMessage('Time slot is required').bail().trim().notEmpty().withMessage('Time slot is required').bail().isLength({ max: 50 }).withMessage('Time slot is too long'),

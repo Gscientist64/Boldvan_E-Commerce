@@ -68,3 +68,30 @@ export const otpVerifyLimiter = rateLimit({
   legacyHeaders: false,
   message: jsonMessage('Too many verification attempts. Please try again in 15 minutes.')
 });
+
+// Checkout / order creation: 10 / 15 min per IP (limits order spam / stock reservation abuse)
+export const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonMessage('Too many orders placed. Please try again in 15 minutes.')
+});
+
+// Review submission: 15 / hour per IP (limits review spam)
+export const reviewLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonMessage('Too many reviews submitted. Please try again later.')
+});
+
+// Booking creation: 10 / hour per IP
+export const bookingLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: jsonMessage('Too many booking requests. Please try again later.')
+});

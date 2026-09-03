@@ -3,6 +3,7 @@ import { prisma } from '../utils/database';
 import { authenticate } from '../middleware/auth.middleware';
 import { body } from 'express-validator';
 import { validate } from '../utils/validate';
+import { orderLimiter } from '../utils/rateLimits';
 
 const router = express.Router();
 
@@ -36,7 +37,7 @@ const verifyWithProvider = async ({ url, secretKey }: { url: string; secretKey: 
 };
 
 // Create order (checkout)
-router.post('/', authenticate, validate([
+router.post('/', authenticate, orderLimiter, validate([
   body('items').isArray({ min: 1 }).withMessage('Order must contain at least one item'),
   body('shipping.firstName').isString().withMessage('First name is required').bail().trim().isLength({ min: 1, max: 100 }).withMessage('First name is required'),
   body('shipping.lastName').isString().withMessage('Last name is required').bail().trim().isLength({ min: 1, max: 100 }).withMessage('Last name is required'),
