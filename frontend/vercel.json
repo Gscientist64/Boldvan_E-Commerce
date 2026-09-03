@@ -7,6 +7,9 @@
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/images/(.*)", "dest": "/images/$1" },
     { "handle": "filesystem" },
+    { "handle": "miss" },
+    { "src": "/assets/(.*)", "status": 404 },
+    { "src": "/images/(.*)", "status": 404 },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
