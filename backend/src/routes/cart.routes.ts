@@ -1,6 +1,8 @@
 import express from 'express';
 import { prisma } from '../utils/database';
 import { authenticate } from '../middleware/auth.middleware';
+import { body } from 'express-validator';
+import { validate } from '../utils/validate';
 
 const router = express.Router();
 
@@ -93,7 +95,11 @@ router.get('/', async (req, res) => {
 });
 
 // Add item to cart
-router.post('/add', async (req, res) => {
+router.post('/add', validate([
+  body('productId').isString().withMessage('Product is required').bail().trim().notEmpty().withMessage('Product is required'),
+  body('quantity').optional().isInt({ min: 1, max: 99 }).withMessage('Quantity must be between 1 and 99'),
+  body('deliveryFee').optional().isFloat({ min: 0 }).withMessage('Delivery fee must be zero or more')
+]), async (req, res) => {
   try {
     const { 
       productId, 
@@ -216,7 +222,9 @@ router.post('/add', async (req, res) => {
 // In backend/src/routes/cart.routes.ts
 
 // Update cart item quantity
-router.put('/item/:itemId', async (req, res) => {
+router.put('/item/:itemId', validate([
+  body('quantity').isInt({ min: 1, max: 99 }).withMessage('Quantity must be between 1 and 99')
+]), async (req, res) => {
   try {
     const { itemId } = req.params;
     const { quantity } = req.body;

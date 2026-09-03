@@ -6,12 +6,22 @@ import { OAuth2Client } from 'google-auth-library';
 import { body, validationResult } from 'express-validator';
 import { prisma } from '../utils/database';
 import { sendPasswordResetEmail, sendOtpEmail } from '../utils/mail';
+import {
+  loginLimiter,
+  registerLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+  googleAuthLimiter
+} from '../utils/rateLimits';
+import { getLoginLockRemaining, recordLoginFailure, clearLoginFailures } from '../utils/lockout';
+import { setSessionCookie, clearSessionCookie } from '../utils/session';
+import { getTokenFromRequest } from '../middleware/auth.middleware';
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Register (creates account, email must be verified via OTP before login)
-router.post('/register', [
+router.post('/register', registerLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
   body('firstName').optional().trim(),
@@ -84,7 +94,7 @@ router.post('/register', [
 });
 
 // Login
-router.post('/login', [
+router.post('/login', loginLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').exists()
 ], async (req: Request, res: Response) => {
@@ -95,6 +105,18 @@ router.post('/login', [
     }
 
     const { email, password } = req.body;
+
+    // Per-account lockout check (settings come from MarketplaceSettings)
+    const settings = await prisma.marketplaceSettings.findFirst();
+    const maxAttempts = Math.max(1, Number(settings?.maxLoginAttempts) || 5);
+    const lockMinutes = Math.max(1, Number(settings?.lockoutTime) || 15);
+    const lockKey = `login:${String(email).toLowerCase()}`;
+    const remainingLock = getLoginLockRemaining(lockKey);
+    if (remainingLock > 0) {
+      return res.status(429).json({
+        message: `Too many failed attempts. Account is locked. Try again in ${Math.ceil(remainingLock / 60)} minute(s).`
+      });
+    }
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -127,15 +149,27 @@ router.post('/login', [
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
+      const lockSeconds = recordLoginFailure(lockKey, maxAttempts, lockMinutes * 60 * 1000);
+      if (lockSeconds > 0) {
+        return res.status(429).json({
+          message: `Too many failed attempts. Account is locked. Try again in ${Math.ceil(lockSeconds / 60)} minute(s).`
+        });
+      }
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token
+    // Successful login clears any prior failures
+    clearLoginFailures(lockKey);
+
+    // Generate token (30-day session)
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '30d') as any }
     );
+
+    // Persist the session in an httpOnly cookie (XSS-safe).
+    setSessionCookie(res, token, req.secure);
 
     const { password: _pw, roleAssignments, ...userWithoutPassword } = user as any;
     const permissions = Array.from(
@@ -160,7 +194,7 @@ router.post('/login', [
 // Get current user
 router.get('/me', async (req: Request, res: Response) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = getTokenFromRequest(req);
     
     if (!token) {
       return res.status(401).json({ message: 'Authentication required' });
@@ -211,8 +245,19 @@ router.get('/me', async (req: Request, res: Response) => {
   }
 });
 
+// Logout - clears the httpOnly session cookie (client also clears its local state)
+router.post('/logout', async (req: Request, res: Response) => {
+  try {
+    clearSessionCookie(res);
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Forgot Password - Send reset email
-router.post('/forgot-password', [
+router.post('/forgot-password', forgotPasswordLimiter, [
   body('email').isEmail().normalizeEmail()
 ], async (req: Request, res: Response) => {
   try {
@@ -257,7 +302,7 @@ router.post('/forgot-password', [
 });
 
 // Reset Password - Verify token and set new password
-router.post('/reset-password', [
+router.post('/reset-password', resetPasswordLimiter, [
   body('token').notEmpty().withMessage('Reset token is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req: Request, res: Response) => {
@@ -304,7 +349,7 @@ router.post('/reset-password', [
 });
 
 // Google OAuth - verify Google ID token and login/register
-router.post('/google', [
+router.post('/google', googleAuthLimiter, [
   body('credential').notEmpty().withMessage('Google credential is required')
 ], async (req: Request, res: Response) => {
   try {
@@ -364,14 +409,17 @@ router.post('/google', [
       });
     }
 
-    // Generate token
+    // Generate token (30-day session)
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '30d') as any }
     );
 
-    const { password: _, ...userWithoutPassword } = user;
+    // Persist the session in an httpOnly cookie (XSS-safe).
+    setSessionCookie(res, token, req.secure);
+
+    const { password: _googlePw, ...userWithoutPassword } = user;
 
     res.json({
       user: userWithoutPassword,

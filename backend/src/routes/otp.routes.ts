@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import { prisma } from '../utils/database';
 import { sendOtpEmail } from '../utils/mail';
+import { otpSendLimiter, otpVerifyLimiter } from '../utils/rateLimits';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ function generateOtp(): string {
 }
 
 // Send OTP for email verification
-router.post('/send', [
+router.post('/send', otpSendLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('type').isIn(['REGISTRATION', 'RESET_PASSWORD'])
 ], async (req: Request, res: Response) => {
@@ -56,7 +57,7 @@ router.post('/send', [
 });
 
 // Verify OTP
-router.post('/verify', [
+router.post('/verify', otpVerifyLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('otp').isLength({ min: 6, max: 6 }).isString(),
   body('type').isIn(['REGISTRATION', 'RESET_PASSWORD'])

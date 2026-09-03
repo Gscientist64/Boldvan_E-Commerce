@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/database';
+import { getTokenFromCookieHeader } from '../utils/session';
 
 // Extend the Request interface to include user property
 declare global {
@@ -17,9 +18,18 @@ declare global {
   }
 }
 
+// Resolve the bearer token from the Authorization header or the httpOnly session cookie.
+export const getTokenFromRequest = (req: Request): string | null => {
+  const header = req.header('Authorization');
+  if (header && header.startsWith('Bearer ')) {
+    return header.slice(7).trim();
+  }
+  return getTokenFromCookieHeader(req.headers.cookie as string | undefined);
+};
+
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = getTokenFromRequest(req);
     
     if (!token) {
       return res.status(401).json({ message: 'Authentication required' });

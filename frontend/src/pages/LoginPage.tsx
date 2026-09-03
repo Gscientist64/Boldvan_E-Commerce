@@ -93,6 +93,7 @@ const LoginPage: React.FC = () => {
       const res = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // accept the httpOnly session cookie
         body: JSON.stringify({ credential: credentialResponse.credential }),
       });
       const data = await res.json();

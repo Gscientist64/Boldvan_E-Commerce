@@ -56,8 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token) {
         try {
           const response = await fetch(`${API_URL}/auth/me`, {
+            credentials: 'include', // session cookie authenticates this request
             headers: {
-              'Authorization': `Bearer ${token}`
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
           });
 
@@ -85,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // accept the httpOnly session cookie
         body: JSON.stringify({ email, password })
       });
 
@@ -134,7 +136,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    }
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
@@ -147,8 +157,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 

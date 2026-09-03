@@ -4,24 +4,14 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7000/api';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // send the httpOnly session cookie (incl. cross-site to the API host)
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Request interceptor to add token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// NOTE: auth is carried by the httpOnly session cookie set at login, so no token is
+// injected here. The backend accepts the cookie OR an Authorization header.
 
 // Response interceptor for error handling
 api.interceptors.response.use(

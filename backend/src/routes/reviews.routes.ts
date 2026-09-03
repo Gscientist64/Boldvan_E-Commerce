@@ -1,6 +1,8 @@
 import express from 'express';
 import { prisma } from '../utils/database';
 import { authenticate } from '../middleware/auth.middleware';
+import { body } from 'express-validator';
+import { validate } from '../utils/validate';
 
 const router = express.Router();
 
@@ -48,7 +50,10 @@ router.get('/product/:productId', async (req, res) => {
 });
 
 // Create a review
-router.post('/product/:productId', authenticate, async (req, res) => {
+router.post('/product/:productId', authenticate, validate([
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+  body('comment').optional().isString().withMessage('Comment must be text').bail().isLength({ max: 2000 }).withMessage('Comment is too long (max 2000 characters)')
+]), async (req, res) => {
   try {
     const { productId } = req.params;
     const { rating, comment } = req.body;
@@ -116,7 +121,10 @@ router.post('/product/:productId', authenticate, async (req, res) => {
 });
 
 // Update a review
-router.put('/:reviewId', authenticate, async (req, res) => {
+router.put('/:reviewId', authenticate, validate([
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+  body('comment').optional().isString().withMessage('Comment must be text').bail().isLength({ max: 2000 }).withMessage('Comment is too long (max 2000 characters)')
+]), async (req, res) => {
   try {
     const { reviewId } = req.params;
     const { rating, comment } = req.body;

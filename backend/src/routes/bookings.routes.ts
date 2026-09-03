@@ -1,11 +1,20 @@
 import express from 'express';
 import { prisma } from '../utils/database';
 import { authenticate } from '../middleware/auth.middleware';
+import { body } from 'express-validator';
+import { validate } from '../utils/validate';
 
 const router = express.Router();
 
 // Create booking
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, validate([
+  body('serviceId').isString().withMessage('Service is required').bail().trim().notEmpty().withMessage('Service is required'),
+  body('date').isISO8601().withMessage('A valid date is required'),
+  body('timeSlot').isString().withMessage('Time slot is required').bail().trim().notEmpty().withMessage('Time slot is required').bail().isLength({ max: 50 }).withMessage('Time slot is too long'),
+  body('phone').optional().isString().withMessage('Phone must be text').bail().isLength({ max: 30 }).withMessage('Phone is too long'),
+  body('address').optional().isString().withMessage('Address must be text').bail().isLength({ max: 500 }).withMessage('Address is too long'),
+  body('notes').optional().isString().withMessage('Notes must be text').bail().isLength({ max: 1000 }).withMessage('Notes are too long')
+]), async (req, res) => {
   try {
     const userId = req.user!.id;
     const { serviceId, date, timeSlot, address, phone, notes } = req.body;

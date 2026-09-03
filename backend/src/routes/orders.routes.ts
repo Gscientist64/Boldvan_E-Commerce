@@ -1,6 +1,8 @@
 import express from 'express';
 import { prisma } from '../utils/database';
 import { authenticate } from '../middleware/auth.middleware';
+import { body } from 'express-validator';
+import { validate } from '../utils/validate';
 
 const router = express.Router();
 
@@ -34,7 +36,18 @@ const verifyWithProvider = async ({ url, secretKey }: { url: string; secretKey: 
 };
 
 // Create order (checkout)
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, validate([
+  body('items').isArray({ min: 1 }).withMessage('Order must contain at least one item'),
+  body('shipping.firstName').isString().withMessage('First name is required').bail().trim().isLength({ min: 1, max: 100 }).withMessage('First name is required'),
+  body('shipping.lastName').isString().withMessage('Last name is required').bail().trim().isLength({ min: 1, max: 100 }).withMessage('Last name is required'),
+  body('shipping.email').isEmail().withMessage('A valid email is required'),
+  body('shipping.phone').isString().withMessage('Phone is required').bail().trim().isLength({ min: 1, max: 30 }).withMessage('Phone is required'),
+  body('shipping.address').isString().withMessage('Address is required').bail().trim().isLength({ min: 1, max: 500 }).withMessage('Address is required'),
+  body('shipping.city').isString().withMessage('City is required').bail().trim().isLength({ min: 1, max: 100 }).withMessage('City is required'),
+  body('shipping.state').isString().withMessage('State is required').bail().trim().isLength({ min: 1, max: 100 }).withMessage('State is required'),
+  body('paymentMethod').optional().isString().withMessage('Payment method must be text').bail().isLength({ max: 50 }).withMessage('Payment method is too long'),
+  body('notes').optional().isString().withMessage('Notes must be text').bail().isLength({ max: 2000 }).withMessage('Notes are too long')
+]), async (req, res) => {
   try {
     const userId = req.user!.id;
     const { items, shipping, paymentMethod, notes, idempotencyKey, deliveryMethodId } = req.body;
