@@ -1,7 +1,7 @@
 // backend/src/utils/session.ts
 // HttpOnly session cookie helpers.
 //
-// The frontend (www.boldvanltd.com) and backend (boldvan-e-commerce.onrender.com)
+// The frontend (www.boldvanltd.com) and backend (boldvan-e-commerce-0943.onrender.com)
 // are DIFFERENT sites, so the cookie must be SameSite=None + Secure in production
 // to be sent on cross-site requests. In local dev (same host, http) we use
 // SameSite=Lax and Secure=false so it still works over http://localhost.
