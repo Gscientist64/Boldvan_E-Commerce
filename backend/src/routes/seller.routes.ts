@@ -12,9 +12,9 @@ router.get('/', async (req, res) => {
       // Create default seller info if none exists
       seller = await prisma.sellerInfo.create({
         data: {
-          name: 'OneClick Resources',
+          name: 'BOLDVAN Resources',
           description: 'Your trusted partner for solar energy solutions in Nigeria',
-          email: 'oneclickresourcesng@gmail.com',
+          email: 'boldvanresourcesng@gmail.com',
           phone: '08178363424',
           whatsapp: '08178363424',
           address: 'Calabar, Nigeria',

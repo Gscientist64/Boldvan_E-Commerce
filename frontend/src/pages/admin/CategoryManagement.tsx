@@ -54,6 +54,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { uploadImage } from '@/lib/upload';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:7000/api';
 
@@ -274,7 +275,7 @@ const CategoryManagement = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
@@ -287,24 +288,28 @@ const CategoryManagement = () => {
       return;
     }
     
-    let finalImageUrl = formData.image;
-    
-    // If file is selected, handle upload
+    // If a file is selected, upload it to the server and use the returned URL
     if (uploadMethod === 'file' && selectedFile) {
-      // For now, create object URL
-      // In production, implement actual file upload
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        finalImageUrl = reader.result as string;
+      setIsUploading(true);
+      try {
+        const uploadedUrl = await uploadImage(selectedFile);
+        setIsUploading(false);
         categoryMutation.mutate({
           ...formData,
-          image: finalImageUrl
+          image: uploadedUrl
         });
-      };
-      reader.readAsDataURL(selectedFile);
-    } else {
-      categoryMutation.mutate(formData);
+      } catch (error: any) {
+        setIsUploading(false);
+        toast({
+          title: 'Upload failed',
+          description: error?.message || 'Failed to upload image. Please try the URL method.',
+          variant: 'destructive',
+        });
+      }
+      return;
     }
+
+    categoryMutation.mutate(formData);
   };
 
   const handleInputChange = (

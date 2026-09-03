@@ -54,11 +54,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { uploadImage } from "@/lib/upload";
 import {
   Product,
   ProductFormData,
   Category,
-} from "@/types/product";
+} from "@/data/products";
 
 // Use the correct environment variable
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:7000/api";
@@ -459,31 +460,25 @@ const ProductManagement = () => {
       return;
     }
     
-    let finalImageUrl = formData.image;
-    
-    // If file is selected, handle upload
+    // If a file is selected, upload it to the server and use the returned URL
     if (uploadMethod === "file" && selectedFile) {
+      setIsUploading(true);
       try {
-        setIsUploading(true);
-        // For now, use a placeholder - you need to implement actual file upload
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          finalImageUrl = reader.result as string;
-          submitProductData(finalImageUrl);
-        };
-        reader.readAsDataURL(selectedFile);
-      } catch (error) {
+        const uploadedUrl = await uploadImage(selectedFile);
+        setIsUploading(false);
+        submitProductData(uploadedUrl);
+      } catch (error: any) {
+        setIsUploading(false);
         toast({
           title: "Upload failed",
-          description: "Failed to upload image. Please try URL method.",
+          description: error?.message || "Failed to upload image. Please try the URL method.",
           variant: "destructive",
         });
-        setIsUploading(false);
-        return;
       }
-    } else {
-      submitProductData(finalImageUrl);
+      return;
     }
+
+    submitProductData(formData.image);
   };
 
   const submitProductData = (imageUrl: string) => {
@@ -602,7 +597,7 @@ const ProductManagement = () => {
     }
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
+  const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategory.name.trim()) {
       toast({
@@ -613,31 +608,25 @@ const ProductManagement = () => {
       return;
     }
 
-    let finalCategoryImage = newCategory.image;
-    
-    // If file is selected for category, handle it
+    // If a category file is selected, upload it and use the returned URL
     if (categoryUploadMethod === "file" && selectedCategoryFile) {
+      setIsCreatingCategory(true);
       try {
-        setIsCreatingCategory(true);
-        // For now, use a placeholder - you need to implement actual file upload
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          finalCategoryImage = reader.result as string;
-          submitCategoryData(finalCategoryImage);
-        };
-        reader.readAsDataURL(selectedCategoryFile);
-      } catch (error) {
+        const uploadedUrl = await uploadImage(selectedCategoryFile);
+        setIsCreatingCategory(false);
+        submitCategoryData(uploadedUrl);
+      } catch (error: any) {
+        setIsCreatingCategory(false);
         toast({
           title: "Upload failed",
-          description: "Failed to upload category image. Please try URL method.",
+          description: error?.message || "Failed to upload category image. Please try the URL method.",
           variant: "destructive",
         });
-        setIsCreatingCategory(false);
-        return;
       }
-    } else {
-      submitCategoryData(finalCategoryImage);
+      return;
     }
+
+    submitCategoryData(newCategory.image);
   };
 
   const submitCategoryData = (imageUrl: string) => {

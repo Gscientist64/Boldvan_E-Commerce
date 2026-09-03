@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ router.use(authenticate);
 router.use(authorizeAdmin);
 
 // Get all products (admin view)
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('VIEW_PRODUCTS'), async (req, res) => {
   try {
     const { page = 1, limit = 50, search, category } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create product
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('CREATE_PRODUCT'), async (req, res) => {
   try {
     const {
       name,
@@ -129,7 +129,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update product
-router.put('/:id', async (req, res) => {
+router.put('/:id', requirePermission('EDIT_PRODUCT'), async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -175,7 +175,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete product
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('DELETE_PRODUCT'), async (req, res) => {
   try {
     const { id } = req.params;
 

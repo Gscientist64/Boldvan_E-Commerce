@@ -9,6 +9,10 @@ interface User {
   phone?: string;
   address?: string;
   role: 'USER' | 'ADMIN';
+  // RBAC info returned by the backend (aggregated from role assignments)
+  permissions?: string[];
+  roles?: string[];
+  isSuperAdmin?: boolean;
 }
 
 interface AuthContextType {

@@ -30,6 +30,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import DeliveryManagement from "./pages/admin/DeliveryManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
 import OrderManagement from "./pages/admin/OrderManagement";
+import BookingManagement from "./pages/admin/BookingManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import AdminManagement from "./pages/admin/AdminManagement";
@@ -125,6 +126,7 @@ const App = () => {
                     <Route path="delivery" element={<DeliveryManagement />} />
                     <Route path="products" element={<ProductManagement />} />
                     <Route path="orders" element={<OrderManagement />} />
+                    <Route path="bookings" element={<BookingManagement />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="categories" element={<CategoryManagement />} />
                     <Route path="settings" element={<Settings />} />

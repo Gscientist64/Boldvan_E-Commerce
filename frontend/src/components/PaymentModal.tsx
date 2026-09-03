@@ -109,31 +109,60 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
-  const handlePaystackSuccess = (reference: any) => {
-    console.log('Paystack success:', reference);
-    setIsProcessing(false);
-    
-    // Update order payment status
-    fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/payment`, {
+  // Tell the backend the payment succeeded; it independently verifies with the provider
+  // before marking the order as paid. Resolves only when verification passed.
+  const confirmServerPayment = async (payload: any) => {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/payment`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      body: JSON.stringify({
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let message = 'Payment could not be verified.';
+      try {
+        const data = await response.json();
+        message = data.message || message;
+      } catch {
+        /* ignore parse errors */
+      }
+      throw new Error(message);
+    }
+
+    return response.json();
+  };
+
+  const handlePaystackSuccess = async (reference: any) => {
+    console.log('Paystack success:', reference);
+    setIsProcessing(true);
+
+    try {
+      await confirmServerPayment({
         paymentStatus: 'paid',
         paymentReference: reference.reference,
         paymentMethod: 'paystack'
-      })
-    }).catch(err => console.error('Error updating order payment:', err));
+      });
 
-    clearCart();
-    toast({
-      title: 'Payment Successful! 🎉',
-      description: `Reference: ${reference.reference}`,
-    });
-    onSuccess();
-    onOpenChange(false);
+      clearCart();
+      toast({
+        title: 'Payment Successful! 🎉',
+        description: `Reference: ${reference.reference}`,
+      });
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: 'Payment verification issue',
+        description: `${error?.message || 'We could not verify your payment automatically.'} If you were charged, our team will confirm your order manually.`,
+        variant: 'destructive',
+        duration: 10000,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handlePaystackClose = () => {
@@ -199,31 +228,32 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           description: `Payment for Order ${orderId || ''}`,
           logo: storeConfig.logo,
         },
-        callback: (response: any) => {
+        callback: async (response: any) => {
           console.log('Flutterwave callback:', response);
           
           if (response.status === 'successful' || response.status === 'completed') {
-            // Update order payment status
-            fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/payment`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              },
-              body: JSON.stringify({
+            try {
+              await confirmServerPayment({
                 paymentStatus: 'paid',
                 paymentReference: response.transaction_id || response.tx_ref,
                 paymentMethod: 'flutterwave'
-              })
-            }).catch(err => console.error('Error updating order payment:', err));
+              });
 
-            clearCart();
-            toast({
-              title: 'Payment Successful! 🎉',
-              description: `Transaction ID: ${response.transaction_id}`,
-            });
-            onSuccess();
-            onOpenChange(false);
+              clearCart();
+              toast({
+                title: 'Payment Successful! 🎉',
+                description: `Transaction ID: ${response.transaction_id}`,
+              });
+              onSuccess();
+              onOpenChange(false);
+            } catch (error: any) {
+              toast({
+                title: 'Payment verification issue',
+                description: `${error?.message || 'We could not verify your payment automatically.'} If you were charged, our team will confirm your order manually.`,
+                variant: 'destructive',
+                duration: 10000,
+              });
+            }
           } else {
             toast({
               title: 'Payment Failed',

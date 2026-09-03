@@ -95,7 +95,16 @@ const CheckoutPage: React.FC = () => {
   const { toast } = useToast();
   
   const redirectPerformed = useRef(false);
-  
+  const placingOrderRef = useRef(false);
+
+  // Idempotency: one stable key per checkout attempt so duplicate submissions
+  // (double-clicks / network retries) reuse the same order instead of creating duplicates.
+  const newCheckoutKey = () =>
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `ord-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const idempotencyKeyRef = useRef<string>(newCheckoutKey());
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -270,6 +279,12 @@ const CheckoutPage: React.FC = () => {
       return;
     }
 
+    // Prevent double-submission before the disabled state re-renders.
+    if (placingOrderRef.current) {
+      return;
+    }
+    placingOrderRef.current = true;
+
     setIsProcessing(true);
 
     try {
@@ -300,7 +315,8 @@ const CheckoutPage: React.FC = () => {
         paymentMethod,
         subtotal: total,
         total: totalAmount,
-        notes: formData.deliveryInstructions
+        notes: formData.deliveryInstructions,
+        idempotencyKey: idempotencyKeyRef.current
       };
 
       const response = await fetch(`${API_BASE_URL}/orders`, {
@@ -319,6 +335,8 @@ const CheckoutPage: React.FC = () => {
 
       const order = await response.json();
       setOrderId(order.id);
+      // Rotate the key after a successful order so the next checkout is a fresh logical order.
+      idempotencyKeyRef.current = newCheckoutKey();
       setShowPaymentModal(true);
 
     } catch (error) {
@@ -330,6 +348,7 @@ const CheckoutPage: React.FC = () => {
       });
     } finally {
       setIsProcessing(false);
+      placingOrderRef.current = false;
     }
   }, [agreeTerms, items, formData, selectedShipping, shippingCost, paymentMethod, total, totalAmount, navigate, toast]);
 

@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '../../utils/database';
+import { requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
 // Get all orders
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requirePermission('VIEW_ORDERS'), async (req: Request, res: Response) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -52,7 +53,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Update order status
-router.patch('/:id/status', async (req: Request, res: Response) => {
+router.patch('/:id/status', requirePermission('EDIT_ORDER_STATUS'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status, trackingNumber } = req.body;
@@ -87,7 +88,7 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
 });
 
 // Update order payment status
-router.patch('/:id/payment', async (req: Request, res: Response) => {
+router.patch('/:id/payment', requirePermission('EDIT_ORDER_STATUS'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { paymentStatus, paymentReference, note } = req.body;

@@ -151,6 +151,7 @@ model User {
   bookings  Booking[]
   orders    Order[]
   reviews   Review[]
+  wishlistItems WishlistItem[]
 }
 
 // OTP Verification for email verification flow
@@ -199,6 +200,22 @@ model Product {
   category       Category    @relation(fields: [categoryId], references: [id])
   reviews        Review[]
   cartItems      CartItem[]  // Relation to CartItem
+  wishlistItems  WishlistItem[] // Relation to WishlistItem
+}
+
+// Wishlist model - stores products a user saves to buy later
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlist_items")
 }
 
 model Order {
@@ -212,6 +229,7 @@ model Order {
   paymentMethod   String
   paymentStatus   String   @default("pending")
   paymentReference String?
+  idempotencyKey  String?  @unique
   notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -400,7 +418,7 @@ model ShopSettings {
 // Seller Information Model
 model SellerInfo {
   id            String   @id @default(cuid())
-  name          String   @default("OneClick Resources")
+  name          String   @default("BOLDVAN Resources")
   description   String?
   email         String?
   phone         String?  @default("08178363424")
@@ -423,7 +441,7 @@ model MarketplaceSettings {
   id                       String   @id @default(cuid())
   
   // General Settings
-  siteName                 String   @default("SolarMart")
+  siteName                 String   @default("BOLDVAN")
   siteDescription          String?  @default("Your trusted solar energy marketplace")
   siteLogo                 String?
   favicon                  String?
@@ -471,7 +489,7 @@ model MarketplaceSettings {
   smtpFromName             String?
   
   // SEO Settings
-  metaTitle                String?  @default("SolarMart - Nigeria's Premier Solar Marketplace")
+  metaTitle                String?  @default("BOLDVAN - Nigeria's Premier Solar Marketplace")
   metaDescription          String?  @default("Shop premium solar panels, inverters, batteries and accessories in Nigeria")
   metaKeywords             String?
   googleAnalyticsId        String?

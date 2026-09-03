@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.use(authenticate);
 router.use(authorizeAdmin);
 
 // Get all roles
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('MANAGE_ROLES'), async (req, res) => {
   try {
     const roles = await prisma.role.findMany({
       orderBy: { name: 'asc' },
@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get role by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', requirePermission('MANAGE_ROLES'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -80,7 +80,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new role
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('MANAGE_ROLES'), async (req, res) => {
   try {
     const { name, description, permissions } = req.body;
 
@@ -125,7 +125,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update role
-router.put('/:id', async (req, res) => {
+router.put('/:id', requirePermission('MANAGE_ROLES'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, permissions } = req.body;
@@ -187,7 +187,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete role
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('MANAGE_ROLES'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -243,7 +243,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Assign roles to user
-router.put('/users/:userId/roles', async (req, res) => {
+router.put('/users/:userId/roles', requirePermission('MANAGE_USER_ROLES'), async (req, res) => {
   try {
     const { userId } = req.params;
     const { roleIds } = req.body;

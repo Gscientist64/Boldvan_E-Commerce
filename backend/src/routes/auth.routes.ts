@@ -106,7 +106,12 @@ router.post('/login', [
         firstName: true,
         lastName: true,
         role: true,
-        emailVerified: true
+        emailVerified: true,
+        roleAssignments: {
+          include: {
+            role: { select: { permissions: true } }
+          }
+        }
       }
     });
 
@@ -132,10 +137,17 @@ router.post('/login', [
       { expiresIn: '7d' }
     );
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _pw, roleAssignments, ...userWithoutPassword } = user as any;
+    const permissions = Array.from(
+      new Set((roleAssignments || []).flatMap((a: any) => a.role?.permissions || []))
+    );
 
     res.json({
-      user: userWithoutPassword,
+      user: {
+        ...userWithoutPassword,
+        permissions,
+        isSuperAdmin: userWithoutPassword.role === 'ADMIN'
+      },
       token,
       message: 'Login successful'
     });
@@ -166,7 +178,12 @@ router.get('/me', async (req: Request, res: Response) => {
         phone: true,
         address: true,
         role: true,
-        createdAt: true
+        createdAt: true,
+        roleAssignments: {
+          include: {
+            role: { select: { permissions: true, name: true } }
+          }
+        }
       }
     });
 
@@ -174,7 +191,20 @@ router.get('/me', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({ user });
+    const { roleAssignments, ...safeUser } = user as any;
+    const permissions = Array.from(
+      new Set((roleAssignments || []).flatMap((a: any) => a.role?.permissions || []))
+    );
+    const roles = (roleAssignments || []).map((a: any) => a.role?.name).filter(Boolean);
+
+    res.json({
+      user: {
+        ...safeUser,
+        permissions,
+        roles,
+        isSuperAdmin: user.role === 'ADMIN'
+      }
+    });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ message: 'Invalid token' });

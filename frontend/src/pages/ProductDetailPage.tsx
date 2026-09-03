@@ -1,6 +1,6 @@
 // frontend/src/pages/ProductDetailPage.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -486,6 +486,69 @@ const ProductDetailPage = () => {
       });
     },
   });
+
+  // ============ REMOVE FROM WISHLIST MUTATION ============
+  const removeFromWishlistMutation = useMutation({
+    mutationFn: async () => {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Please login to manage your wishlist');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/wishlist/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok && response.status !== 404) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to remove from wishlist');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsInWishlist(false);
+      toast({
+        title: 'Removed from wishlist',
+        description: `${product.name} has been removed from your wishlist.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Sync heart state with the server on load (logged-in users only)
+  useEffect(() => {
+    let cancelled = false;
+    const token = getAuthToken();
+    if (!token || !id) return;
+
+    (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/wishlist`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        const items = data.items || data || [];
+        if (!cancelled) {
+          setIsInWishlist(items.some((item: any) => String(item.productId) === String(id)));
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [id]);
 
   // ============ HANDLERS ============
   const handleQuantityChange = (delta: number) => {
@@ -1087,8 +1150,12 @@ const ProductDetailPage = () => {
                     <Button
                       variant="outline"
                       size="lg"
-                      onClick={() => addToWishlistMutation.mutate()}
-                      disabled={addToWishlistMutation.isPending}
+                      onClick={() =>
+                        isInWishlist
+                          ? removeFromWishlistMutation.mutate()
+                          : addToWishlistMutation.mutate()
+                      }
+                      disabled={addToWishlistMutation.isPending || removeFromWishlistMutation.isPending}
                       className="w-full border-2 border-slate-200 hover:border-teal-500 hover:bg-teal-50 py-6 text-lg"
                     >
                       <Heart

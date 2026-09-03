@@ -31,3 +31,13 @@ export interface ProductFormData {
   isFeatured: boolean;
   isActive: boolean;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  slug?: string;
+  image?: string;
+  createdAt?: string;
+  productCount?: number;
+}

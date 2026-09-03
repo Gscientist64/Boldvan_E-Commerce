@@ -32,7 +32,8 @@ import {
   Shield,
   Mail,
   Clock,
-  Zap
+  Zap,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -147,6 +148,11 @@ const AdminLayout = () => {
       href: '/admin/orders',
       icon: <ShoppingCart className="h-5 w-5" />,
       badge: '12', // This should come from API
+    },
+    {
+      title: 'Bookings',
+      href: '/admin/bookings',
+      icon: <Calendar className="h-5 w-5" />,
     },
     {
       title: 'Admin Management',
@@ -305,7 +311,7 @@ const AdminLayout = () => {
             </div>
             {sidebarOpen && (
               <span className="font-extrabold text-white text-lg tracking-tight">
-                Solar<span className="text-boldvan-400">Mart</span>
+                BOLD<span className="text-boldvan-400">VAN</span>
                 <span className="text-[10px] text-teal-400 ml-1 font-medium tracking-widest align-super">ADMIN</span>
               </span>
             )}

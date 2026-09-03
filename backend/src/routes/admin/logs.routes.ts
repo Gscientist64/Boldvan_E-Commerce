@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ router.use(authenticate);
 router.use(authorizeAdmin);
 
 // Get activity logs with pagination and filters
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('VIEW_ACTIVITY_LOGS'), async (req, res) => {
   try {
     const {
       page = 1,
@@ -92,7 +92,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get log statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', requirePermission('VIEW_ACTIVITY_LOGS'), async (req, res) => {
   try {
     const now = new Date();
     const today = new Date(now.setHours(0, 0, 0, 0));
@@ -132,7 +132,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // Export logs (for admin download)
-router.get('/export', async (req, res) => {
+router.get('/export', requirePermission('EXPORT_REPORTS'), async (req, res) => {
   try {
     const { startDate, endDate, format = 'json' } = req.query;
 

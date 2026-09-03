@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.use(authorizeAdmin);
 // ============ DELIVERY LOCATIONS ============
 
 // Get all delivery locations
-router.get('/locations', async (req, res) => {
+router.get('/locations', requirePermission('VIEW_DELIVERY_LOCATIONS'), async (req, res) => {
   try {
     const locations = await prisma.deliveryLocation.findMany({
       orderBy: { sortOrder: 'asc' }
@@ -24,7 +24,7 @@ router.get('/locations', async (req, res) => {
 });
 
 // Create delivery location
-router.post('/locations', async (req, res) => {
+router.post('/locations', requirePermission('MANAGE_DELIVERY_LOCATIONS'), async (req, res) => {
   try {
     const { name, description, baseFee, estimatedDays, isActive, sortOrder } = req.body;
     
@@ -51,7 +51,7 @@ router.post('/locations', async (req, res) => {
 });
 
 // Update delivery location
-router.put('/locations/:id', async (req, res) => {
+router.put('/locations/:id', requirePermission('MANAGE_DELIVERY_LOCATIONS'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, baseFee, estimatedDays, isActive, sortOrder } = req.body;
@@ -76,7 +76,7 @@ router.put('/locations/:id', async (req, res) => {
 });
 
 // Delete delivery location
-router.delete('/locations/:id', async (req, res) => {
+router.delete('/locations/:id', requirePermission('MANAGE_DELIVERY_LOCATIONS'), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -106,7 +106,7 @@ router.delete('/locations/:id', async (req, res) => {
 // ============ DELIVERY METHODS ============
 
 // Get all delivery methods
-router.get('/methods', async (req, res) => {
+router.get('/methods', requirePermission('VIEW_DELIVERY_METHODS'), async (req, res) => {
   try {
     const methods = await prisma.deliveryMethod.findMany({
       orderBy: { sortOrder: 'asc' }
@@ -119,7 +119,7 @@ router.get('/methods', async (req, res) => {
 });
 
 // Create delivery method
-router.post('/methods', async (req, res) => {
+router.post('/methods', requirePermission('MANAGE_DELIVERY_METHODS'), async (req, res) => {
   try {
     const { name, description, baseFee, estimatedDays, isActive, sortOrder } = req.body;
     
@@ -146,7 +146,7 @@ router.post('/methods', async (req, res) => {
 });
 
 // Update delivery method
-router.put('/methods/:id', async (req, res) => {
+router.put('/methods/:id', requirePermission('MANAGE_DELIVERY_METHODS'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, baseFee, estimatedDays, isActive, sortOrder } = req.body;
@@ -171,7 +171,7 @@ router.put('/methods/:id', async (req, res) => {
 });
 
 // Delete delivery method
-router.delete('/methods/:id', async (req, res) => {
+router.delete('/methods/:id', requirePermission('MANAGE_DELIVERY_METHODS'), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -198,7 +198,7 @@ router.delete('/methods/:id', async (req, res) => {
 // ============ LOCATION-METHOD MAPPING ============
 
 // Get all mappings
-router.get('/mappings', async (req, res) => {
+router.get('/mappings', requirePermission('VIEW_DELIVERY_LOCATIONS'), async (req, res) => {
   try {
     const { locationId, methodId } = req.query;
     
@@ -222,7 +222,7 @@ router.get('/mappings', async (req, res) => {
 });
 
 // Create or update mapping
-router.post('/mappings', async (req, res) => {
+router.post('/mappings', requirePermission('CONFIGURE_DELIVERY_PRICING'), async (req, res) => {
   try {
     const { locationId, methodId, customFee, customDays, isActive } = req.body;
     
@@ -259,7 +259,7 @@ router.post('/mappings', async (req, res) => {
 });
 
 // Delete mapping
-router.delete('/mappings/:id', async (req, res) => {
+router.delete('/mappings/:id', requirePermission('CONFIGURE_DELIVERY_PRICING'), async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.deliveryLocationMethod.delete({
@@ -275,7 +275,7 @@ router.delete('/mappings/:id', async (req, res) => {
 // ============ SHOP SETTINGS ============
 
 // Get shop settings
-router.get('/settings', async (req, res) => {
+router.get('/settings', requirePermission('VIEW_SETTINGS'), async (req, res) => {
   try {
     let settings = await prisma.shopSettings.findFirst();
     
@@ -287,7 +287,7 @@ router.get('/settings', async (req, res) => {
           freeShippingThreshold: 50000,
           returnPolicy: '30-day return policy for defective items',
           warrantyInfo: '1-year warranty on all products',
-          contactEmail: 'oneclickresourcesng@gmail.com',
+          contactEmail: 'boldvanresourcesng@gmail.com',
           contactPhone: '08178363424',
           whatsappNumber: '08178363424'
         }
@@ -302,7 +302,7 @@ router.get('/settings', async (req, res) => {
 });
 
 // Update shop settings
-router.put('/settings', async (req, res) => {
+router.put('/settings', requirePermission('EDIT_GENERAL_SETTINGS'), async (req, res) => {
   try {
     const settings = await prisma.shopSettings.upsert({
       where: { id: 'default' },
@@ -323,7 +323,7 @@ router.put('/settings', async (req, res) => {
 // ============ SELLER INFO ============
 
 // Get seller info
-router.get('/seller', async (req, res) => {
+router.get('/seller', requirePermission('VIEW_SETTINGS'), async (req, res) => {
   try {
     let seller = await prisma.sellerInfo.findFirst();
     
@@ -332,9 +332,9 @@ router.get('/seller', async (req, res) => {
       seller = await prisma.sellerInfo.create({
         data: {
           id: 'default',
-          name: 'OneClick Resources',
+          name: 'BOLDVAN Resources',
           description: 'Your trusted partner for solar energy solutions in Nigeria',
-          email: 'sales@oneclickresources.com',
+          email: 'sales@boldvanresources.com',
           phone: '08178363424',
           whatsapp: '08178363424',
           address: 'Lagos, Nigeria',
@@ -356,7 +356,7 @@ router.get('/seller', async (req, res) => {
 });
 
 // Update seller info
-router.put('/seller', async (req, res) => {
+router.put('/seller', requirePermission('EDIT_GENERAL_SETTINGS'), async (req, res) => {
   try {
     const seller = await prisma.sellerInfo.upsert({
       where: { id: 'default' },

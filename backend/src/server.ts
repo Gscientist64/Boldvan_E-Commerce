@@ -29,11 +29,14 @@ import publicSettingsRoutes from './routes/settings.routes'; // ✅ RENAMED
 import wishlistRoutes from './routes/wishlist.routes';
 import cartRoutes from './routes/cart.routes';
 import profileRoutes from './routes/profile.routes';
+import uploadRoutes from './routes/admin/upload.routes';
+import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 7000;
 
 // If running behind a proxy (like Render), trust first proxy
 app.set('trust proxy', 1);
@@ -95,6 +98,13 @@ app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files (multer writes to UPLOAD_PATH)
+const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_PATH || './uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadDir));
+
 // Public Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
@@ -121,13 +131,14 @@ app.use('/api/admin/settings', adminSettingsRoutes); // ✅ USING RENAMED IMPORT
 app.use('/api/admin/users', usersRoutes);
 app.use('/api/admin/roles', rolesRoutes);
 app.use('/api/admin/logs', logsRoutes);
+app.use('/api/admin/upload', uploadRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    service: 'Solar E-commerce API',
+    service: 'BOLDVAN E-commerce API',
     version: '1.0.0'
   });
 });

@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '../../utils/database';
+import { requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
 // Get all bookings
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requirePermission('VIEW_BOOKINGS'), async (req: Request, res: Response) => {
   try {
     const { status, type, page = 1, limit = 20 } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -56,7 +57,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Update booking status
-router.patch('/:id/status', async (req: Request, res: Response) => {
+router.patch('/:id/status', requirePermission('MANAGE_BOOKINGS'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.use(authenticate);
 router.use(authorizeAdmin);
 
 // Get all categories
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('MANAGE_PRODUCT_CATEGORIES'), async (req, res) => {
   try {
     const categories = await prisma.category.findMany({
       orderBy: { name: 'asc' }
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get category statistics (product counts)
-router.get('/stats', async (req, res) => {
+router.get('/stats', requirePermission('MANAGE_PRODUCT_CATEGORIES'), async (req, res) => {
   try {
     const categories = await prisma.category.findMany({
       include: {
@@ -45,7 +45,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // Create category
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('MANAGE_PRODUCT_CATEGORIES'), async (req, res) => {
   try {
     const { name, description, slug, image } = req.body;
 
@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update category
-router.put('/:id', async (req, res) => {
+router.put('/:id', requirePermission('MANAGE_PRODUCT_CATEGORIES'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, slug, image } = req.body;
@@ -141,7 +141,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete category
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('MANAGE_PRODUCT_CATEGORIES'), async (req, res) => {
   try {
     const { id } = req.params;
 

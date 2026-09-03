@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 import bcrypt from 'bcrypt';
 
 const router = express.Router();
@@ -12,7 +12,7 @@ router.use(authenticate);
 router.use(authorizeAdmin);
 
 // Get all users with pagination
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('VIEW_USERS'), async (req, res) => {
   try {
     const { 
       page = 1, 
@@ -107,7 +107,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get user by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', requirePermission('VIEW_USERS'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -154,7 +154,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new user
-router.post('/', async (req, res) => {
+router.post('/', requirePermission('CREATE_USER'), async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone, address, role } = req.body;
 
@@ -215,7 +215,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update user
-router.put('/:id', async (req, res) => {
+router.put('/:id', requirePermission('EDIT_USER'), async (req, res) => {
   try {
     const { id } = req.params;
     const { firstName, lastName, phone, address, role } = req.body;
@@ -274,7 +274,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Update user role
-router.put('/:id/role', async (req, res) => {
+router.put('/:id/role', requirePermission('MANAGE_ADMINS'), async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
@@ -328,7 +328,7 @@ router.put('/:id/role', async (req, res) => {
 });
 
 // Delete user
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requirePermission('DELETE_USER'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -389,7 +389,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Get user statistics
-router.get('/stats/overview', async (req, res) => {
+router.get('/stats/overview', requirePermission('VIEW_USER_REPORTS'), async (req, res) => {
   try {
     const [totalUsers, adminCount, newUsersThisMonth] = await Promise.all([
       prisma.user.count(),

@@ -173,7 +173,7 @@ router.get('/seller', async (req, res) => {
     if (!seller) {
       seller = {
         id: 'default',
-        name: 'OneClick Resources',
+        name: 'BOLDVAN Resources',
         description: 'Your trusted partner for solar energy solutions in Nigeria',
         rating: 4.9,
         totalSales: 1547,

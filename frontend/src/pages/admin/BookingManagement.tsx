@@ -1,8 +1,14 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -12,8 +18,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Eye, Edit, Phone, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const BookingManagement: React.FC = () => {
   const { data: bookingsData, isLoading } = useQuery({
@@ -22,6 +29,27 @@ const BookingManagement: React.FC = () => {
   });
 
   const bookings = bookingsData?.bookings || [];
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      adminApi.updateBookingStatus(id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      toast({
+        title: 'Booking updated',
+        description: 'Booking status has been updated.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Update failed',
+        description: error?.response?.data?.message || 'Failed to update booking status.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -96,14 +124,23 @@ const BookingManagement: React.FC = () => {
                     <TableCell>{booking.phone || 'N/A'}</TableCell>
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Select
+                        value={booking.status}
+                        onValueChange={(value) =>
+                          updateStatusMutation.mutate({ id: booking.id, status: value })
+                        }
+                        disabled={updateStatusMutation.isPending}
+                      >
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue placeholder="Update status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PENDING">Pending</SelectItem>
+                          <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                          <SelectItem value="COMPLETED">Completed</SelectItem>
+                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   </TableRow>
                 ))}

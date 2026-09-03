@@ -14,7 +14,7 @@ router.get('/shop', async (req, res) => {
           freeShippingThreshold: 50000,
           returnPolicy: '30-day return policy for defective items',
           warrantyInfo: '1-year warranty on all products',
-          contactEmail: 'support@oneclickresources.com',
+          contactEmail: 'support@boldvanresources.com',
           contactPhone: '08178363424',
           whatsappNumber: '08178363424'
         }

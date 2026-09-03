@@ -1,6 +1,6 @@
 import express from 'express';
 import { prisma } from '../../utils/database';
-import { authenticate, authorizeAdmin } from '../../middleware/auth.middleware';
+import { authenticate, authorizeAdmin, requirePermission } from '../../middleware/auth.middleware';
 import nodemailer from 'nodemailer';
 
 const router = express.Router();
@@ -12,7 +12,7 @@ router.use(authorizeAdmin);
 // ============ MARKETPLACE SETTINGS ============
 
 // Get all settings
-router.get('/', async (req, res) => {
+router.get('/', requirePermission('VIEW_SETTINGS'), async (req, res) => {
   try {
     let settings = await prisma.marketplaceSettings.findFirst();
     
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
       // Create default settings if none exist
       settings = await prisma.marketplaceSettings.create({
         data: {
-          siteName: 'Oneclick Resources',
+          siteName: 'BOLDVAN',
           siteDescription: 'Your trusted solar energy marketplace',
           currency: 'NGN',
           currencySymbol: '₦',
@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
           autoConfirmOrders: false,
           orderPrefix: 'ORD',
           invoicePrefix: 'INV',
-          metaTitle: 'Oneclick Resources - Nigeria\'s Premier Solar Marketplace',
+          metaTitle: 'BOLDVAN - Nigeria\'s Premier Solar Marketplace',
           metaDescription: 'Shop premium solar panels, inverters, batteries and accessories in Nigeria',
           maintenanceMode: false,
           maintenanceMessage: 'We are currently undergoing maintenance. Please check back soon.',
@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
 });
 
 // Update settings
-router.put('/', async (req, res) => {
+router.put('/', requirePermission('EDIT_GENERAL_SETTINGS'), async (req, res) => {
   try {
     const settingsData = req.body;
     
@@ -85,7 +85,7 @@ router.put('/', async (req, res) => {
 // ============ PAYMENT SETTINGS ============
 
 // Get payment settings (with sensitive data masked)
-router.get('/payment', async (req, res) => {
+router.get('/payment', requirePermission('VIEW_SETTINGS'), async (req, res) => {
   try {
     let settings = await prisma.marketplaceSettings.findFirst();
     
@@ -120,7 +120,7 @@ router.get('/payment', async (req, res) => {
 });
 
 // Update payment settings
-router.put('/payment', async (req, res) => {
+router.put('/payment', requirePermission('EDIT_PAYMENT_SETTINGS'), async (req, res) => {
   try {
     const {
       paystackPublicKey,
@@ -174,7 +174,7 @@ router.put('/payment', async (req, res) => {
 // ============ EMAIL SETTINGS ============
 
 // Get email settings (with sensitive data masked)
-router.get('/email', async (req, res) => {
+router.get('/email', requirePermission('VIEW_SETTINGS'), async (req, res) => {
   try {
     let settings = await prisma.marketplaceSettings.findFirst();
     
@@ -204,7 +204,7 @@ router.get('/email', async (req, res) => {
 });
 
 // Update email settings
-router.put('/email', async (req, res) => {
+router.put('/email', requirePermission('EDIT_EMAIL_SETTINGS'), async (req, res) => {
   try {
     const {
       smtpHost,
@@ -249,7 +249,7 @@ router.put('/email', async (req, res) => {
 });
 
 // Test email configuration
-router.post('/email/test', async (req, res) => {
+router.post('/email/test', requirePermission('EDIT_EMAIL_SETTINGS'), async (req, res) => {
   try {
     const settings = await prisma.marketplaceSettings.findFirst();
     
@@ -270,17 +270,17 @@ router.post('/email/test', async (req, res) => {
     
     // Send test email
     await transporter.sendMail({
-      from: `"${settings.smtpFromName || 'Oneclick Resources'}" <${settings.smtpFromEmail || settings.smtpUser}>`,
+      from: `"${settings.smtpFromName || 'BOLDVAN'}" <${settings.smtpFromEmail || settings.smtpUser}>`,
       to: req.user?.email, // Send to current admin
-      subject: 'Oneclick Resources - Test Email',
+      subject: 'BOLDVAN - Test Email',
       html: `
         <h1>Test Email</h1>
-        <p>This is a test email from your Oneclick Resources marketplace.</p>
+        <p>This is a test email from your BOLDVAN marketplace.</p>
         <p>If you're reading this, your email configuration is working correctly!</p>
         <hr>
         <p><strong>SMTP Host:</strong> ${settings.smtpHost}</p>
         <p><strong>SMTP Port:</strong> ${settings.smtpPort}</p>
-        <p><strong>From:</strong> ${settings.smtpFromName || 'Oneclick Resources'}</p>
+        <p><strong>From:</strong> ${settings.smtpFromName || 'BOLDVAN'}</p>
         <p><small>Sent at: ${new Date().toLocaleString()}</small></p>
       `
     });
@@ -295,7 +295,7 @@ router.post('/email/test', async (req, res) => {
 // ============ CACHE MANAGEMENT ============
 
 // Clear cache
-router.post('/cache/clear', async (req, res) => {
+router.post('/cache/clear', requirePermission('EDIT_GENERAL_SETTINGS'), async (req, res) => {
   try {
     // In a real app, you would clear Redis cache here
     // For now, just log and return success
@@ -315,7 +315,7 @@ router.post('/cache/clear', async (req, res) => {
 // ============ USER STATS ============
 
 // Get user statistics
-router.get('/users/stats', async (req, res) => {
+router.get('/users/stats', requirePermission('VIEW_USER_REPORTS'), async (req, res) => {
   try {
     const [totalUsers, adminCount, newUsersThisMonth] = await Promise.all([
       prisma.user.count(),

@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
 import { prisma } from '../../utils/database';
+import { requirePermission } from '../../middleware/auth.middleware';
 
 const router = express.Router();
 
 // Get dashboard stats
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', requirePermission('VIEW_DASHBOARD'), async (req: Request, res: Response) => {
   try {
     const [
       totalProducts,

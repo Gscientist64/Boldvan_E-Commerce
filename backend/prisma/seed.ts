@@ -12,7 +12,7 @@ async function main() {
       freeShippingThreshold: 50000,
       returnPolicy: '30-day return policy for defective items. Items must be in original packaging.',
       warrantyInfo: '1-year warranty on all solar panels and inverters, 6 months on accessories.',
-      contactEmail: 'oneclickresourcesng@gmail.com',
+      contactEmail: 'boldvanresourcesng@gmail.com',
       contactPhone: '08178363424',
       whatsappNumber: '08178363424'
     }
@@ -24,9 +24,9 @@ async function main() {
     update: {},
     create: {
       id: 'default',
-      name: 'OneClick Resources',
+      name: 'BOLDVAN Resources',
       description: 'Your trusted partner for solar energy solutions in Nigeria',
-      email: 'sales@oneclickresources.com',
+      email: 'sales@boldvanresources.com',
       phone: '08178363424',
       whatsapp: '08178363424',
       address: 'Lagos, Nigeria',
